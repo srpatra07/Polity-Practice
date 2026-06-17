@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parliamentary Committees Quiz</title>
+    <style>
+        :root {
+            --bg-body: #0a0e14;
+            --bg-table: #161b22;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --accent-blue: #58a6ff;
+            --correct-green: #238636;
+            --wrong-red: #da3633;
+            --header-bg: #21262d;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 5px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll, we want the container to handle it */
+        }
+
+        h1 {
+            color: var(--accent-blue);
+            margin: 5px 0;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-container {
+            width: 100%;
+            max-width: 1500px;
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-table);
+            /* SCROLLING: Only shows vertical scrollbar if content exceeds screen height */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border-color);
+            padding: 4px 2px;
+            text-align: center;
+            font-size: 0.72rem;
+            line-height: 1.1;
+            word-wrap: break-word;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            color: var(--accent-blue);
+            height: 35px;
+            /* Keeps header at top if scrolling happens */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Column Width Adjustments */
+        .col-name {
+            width: 240px;
+            text-align: left;
+            padding-left: 8px;
+            background: var(--header-bg);
+            font-weight: bolder;
+        }
+
+        .col-num { width: 120px; }
+        .col-term { width: 120px; }
+        .col-min { width: 120px; }
+        .col-head { width: auto; }
+
+        /* Practice Cells */
+        .practice-cell {
+            cursor: pointer;
+            transition: background 0.1s;
+            /* Tries to fit perfectly on screen */
+            height: calc((100vh - 70px) / 16); 
+            /* Allows cell to grow taller if the answer is long */
+            min-height: 35px; 
+        }
+
+        .practice-cell:hover {
+            background-color: #1c2128;
+        }
+
+        .practice-cell.empty::after {
+            content: "?";
+            color: #484f58;
+            font-weight: bold;
+        }
+
+        /* Result Styles */
+        .correct {
+            background-color: rgba(35, 134, 54, 0.15) !important;
+            color: #3fb950;
+            font-weight: bold;
+        }
+
+        .wrong {
+            background-color: rgba(218, 54, 51, 0.1) !important;
+            color: #f85149;
+        }
+
+        .correct-ans-display {
+            display: block;
+            font-size: 0.65rem;
+            color: #8b949e;
+            margin-top: 2px;
+            border-top: 1px dashed #f85149;
+        }
+
+        /* Modal */
+        #input-overlay {
+            position: fixed;
+            display: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .input-card {
+            background: #1c2128;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-blue);
+            width: 350px;
+            text-align: center;
+        }
+
+        #guess-input {
+            width: 100%;
+            padding: 10px;
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Parliamentary Committees of India</h1>
+ 
+    <div class="table-container">
+        <table id="practiceTable">
+            <thead>
+                <tr>
+                    <th class="col-name">Committee</th>
+                    <th class="col-num">Total</th>
+                    <th class="col-num">LS</th>
+                    <th class="col-num">RS</th>
+                    <th class="col-term">Term</th>
+                    <th class="col-min">Minister allowed ?</th>
+                    <th class="col-head">Head</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <div id="input-overlay">
+        <div class="input-card">
+            <h4 id="modal-title" style="margin:0 0 5px 0; color:var(--accent-blue)"></h4>
+            <p id="modal-context" style="font-size: 0.8rem; margin: 0 0 10px 0; color: #8b949e"></p>
+            <input type="text" id="guess-input" placeholder="Enter answer..." autocomplete="off">
+            <p class="hint">Press <b>Enter</b> to check, <b>Tab</b> for next cell</p>
+        </div>
+    </div>
+
+    <script>
+        const categories = ["Total Members", "Members LS", "Members RS", "Term", "Minister Allowed?", "Head"];
+
+        const committees = {
+            "Estimates Committee": ["30", "30", "0", "1 Year", "No", "Appointed by Speaker (Ruling Party)"],
+            "Public Accounts Committee (PAC)": ["22", "15", "7", "1 Year", "No", "Appointed by Speaker (Opposition Party)"],
+            "Public Undertakings Committee": ["22", "15", "7", "1 Year", "No", "Appointed by Speaker (only from LS)"],
+            "DRSCs": ["31", "21", "10", "1 Year", "No", "Appointed by Speaker (16) and Chairman (8)"],
+            "Private Members' Bills and Resolution": ["15", "15", "0", "1 Year", "No", "Deputy Speaker of LS"],
+            "Business Advisory Committee (LS)": ["15", "15", "0", "Not Fixed", "Yes", "Speaker (Ex-officio Chairman)"],
+            "Business Advisory Committee (RS)": ["11", "0", "11", "Not Fixed", "Yes", "Chairman (Ex-officio Chairman)"],
+            "Committee on Subordinate Legislation (LS)": ["15", "15", "0", "1 Year", "No", "Appointed by Speaker"],
+            "Committee on Subordinate Legislation (RS)": ["15", "0", "15", "1 Year", "No", "Appointed by Chairman"],
+            "Rules Committee (LS)": ["15", "15", "0", "Not Fixed", "Yes", "Speaker (Ex-officio Chairman)"],
+            "Rules Committee (RS)": ["16", "0", "16", "Not Fixed", "Yes", "Chairman (Ex-officio Chairman)"],
+            "Ethics Committee (LS)": ["15", "15", "0", "Not exceeding one year", "Yes", "Appointed by Speaker"],
+            "Ethics Committee (RS)": ["10", "0", "10", "Until a new committee is appointed", "Yes", "Appointed by Chairman"],
+            "Privileges Committee (LS)": ["15", "15", "0", "Not Fixed", "Yes", "Appointed by Speaker"],
+            "Privileges Committee (RS)": ["10", "0", "10", "Not Fixed", "Yes", "Deputy Chairman of RS"]
+        };
+
+        let activeCell = null;
+
+        function initTable() {
+            const tbody = document.getElementById('table-body');
+            for (const [name, values] of Object.entries(committees)) {
+                const tr = document.createElement('tr');
+
+                const tdName = document.createElement('td');
+                tdName.className = 'col-name';
+                tdName.textContent = name;
+                tr.appendChild(tdName);
+
+                values.forEach((val, index) => {
+                    const td = document.createElement('td');
+                    td.className = 'practice-cell empty';
+                    td.dataset.answer = val;
+                    td.dataset.comm = name;
+                    td.dataset.cat = categories[index];
+                    td.onclick = () => openInput(td);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            }
+        }
+
+        function openInput(cell) {
+            if (cell.classList.contains('answered')) return;
+            activeCell = cell;
+            document.getElementById('modal-title').innerText = cell.dataset.comm;
+            document.getElementById('modal-context').innerText = cell.dataset.cat;
+            document.getElementById('guess-input').value = "";
+            document.getElementById('input-overlay').style.display = 'flex';
+            document.getElementById('guess-input').focus();
+        }
+
+        function submitGuess(autoNext = false) {
+            if (!activeCell) return;
+            const input = document.getElementById('guess-input').value.trim();
+            const correct = activeCell.dataset.answer;
+
+            activeCell.classList.remove('empty');
+            activeCell.classList.add('answered');
+
+            const isCorrect = checkLogic(input.toLowerCase(), correct.toLowerCase());
+
+            if (isCorrect) {
+                activeCell.classList.add('correct');
+                activeCell.innerHTML = `<span>${correct}</span>`;
+            } else {
+                activeCell.classList.add('wrong');
+                activeCell.innerHTML = `<span>${input || "---"}</span><span class="correct-ans-display">${correct}</span>`;
+            }
+
+            const currentCell = activeCell;
+            closeModal();
+
+            if (autoNext) {
+                moveToNext(currentCell);
+            }
+        }
+
+        function moveToNext(current) {
+            const allCells = Array.from(document.querySelectorAll('.practice-cell'));
+            const currentIndex = allCells.indexOf(current);
+
+            for (let i = currentIndex + 1; i < allCells.length; i++) {
+                if (!allCells[i].classList.contains('answered')) {
+                    openInput(allCells[i]);
+                    break;
+                }
+            }
+        }
+
+        function checkLogic(guess, target) {
+            if (!guess) return false;
+            const g = guess.toLowerCase().trim();
+            const t = target.toLowerCase().trim();
+
+            if (g === t) return true;
+            if (t === "yes" && g === "y") return true;
+            if (t === "no" && g === "n") return true;
+            if (!isNaN(t)) return g === t;
+
+            if (t.length > 5) {
+                const genericWords = ["appointed", "from", "the", "by", "of", "in", "and", "party"];
+                if (genericWords.includes(g)) return false;
+                if (g.length >= 4 && t.includes(g)) return true;
+            }
+
+            return false;
+        }
+
+        function closeModal() {
+            document.getElementById('input-overlay').style.display = 'none';
+            activeCell = null;
+        }
+
+        document.getElementById('guess-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitGuess(false);
+            }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                submitGuess(true);
+            }
+        });
+
+        window.onload = initTable;
+    </script>
+</body>
+
+</html>

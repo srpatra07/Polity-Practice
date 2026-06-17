@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution Quest: Case Records</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesque:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --card-bg: rgba(20, 20, 25, 0.9);
+            --accent: #facc15;
+            --accent-glow: rgba(250, 204, 21, 0.3);
+            --success: #10b981;
+            --error: #ff4757;
+            --text: #f8fafc;
+            --border: rgba(255, 255, 255, 0.1);
+            --panel-bg: rgba(10, 10, 15, 0.6);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Space Grotesque', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1a1a2e 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, #16213e 0%, transparent 50%);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 1. LEFT SIDE RAIL */
+        .side-rail {
+            width: 70px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .side-rail::-webkit-scrollbar { display: none; }
+
+        .rail-node {
+            width: 40px; height: 40px; border-radius: 10px; border: 1px solid #333;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 12px; cursor: pointer; transition: 0.3s;
+            font-weight: bold; font-size: 0.7rem; flex-shrink: 0; background: #111;
+        }
+        .rail-node.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        .rail-node.completed { background: var(--success); color: white; border: none; }
+
+        /* 2. CENTER ACTION AREA */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .challenge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 2;
+        }
+
+        .part-indicator {
+            font-size: 5rem; font-weight: 900; color: rgba(255, 255, 255, 0.03);
+            position: absolute; top: -10px; right: 20px; pointer-events: none;
+        }
+
+        /* 3. RIGHT SIDE HISTORY PANEL (AS REQUESTED) */
+        .history-panel {
+            width: 320px;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .history-header {
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent);
+            margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;
+            display: flex; justify-content: space-between;
+        }
+
+        .log-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        
+        .log-entry {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 3px solid #333;
+            animation: slideLeft 0.3s ease-out;
+        }
+        .log-entry.pass { border-left-color: var(--success); }
+        .log-entry.fail { border-left-color: var(--error); opacity: 0.7; }
+        
+        .log-part { font-weight: bold; color: var(--accent); font-size: 0.7rem; }
+        .log-sub { display: block; font-size: 0.9rem; margin-top: 4px; }
+
+        @keyframes slideLeft { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* INPUT STYLES */
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #888; margin-bottom: 8px; }
+        input {
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px; color: white; font-family: inherit; transition: 0.3s;
+        }
+        input:focus { outline: none; border-color: var(--accent); background: rgba(255, 255, 255, 0.1); }
+
+        .btn-submit {
+            width: 100%; padding: 16px; background: var(--accent); border: none;
+            border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+
+        /* 4. CHAPTER GUESSING - CARD FORMAT MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+            backdrop-filter: blur(10px); padding: 20px;
+        }
+        .modal-card {
+            background: #0a0a0c;
+            width: 100%;
+            max-width: 900px; /* Wider to fit cards in grid */
+            max-height: 90vh;
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid var(--accent);
+            overflow-y: auto;
+        }
+
+        .chapter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .chapter-battle-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            animation: cardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+        }
+
+        @keyframes cardPop {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .hidden { display: none; }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        #msg-box { text-align: center; margin-top: 15px; font-weight: bold; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <nav class="side-rail" id="sideRail"></nav>
+
+    <main>
+        <div class="challenge-card" id="gameCard">
+            <div class="part-indicator" id="partBg">01</div>
+            <h2 id="partTitle" style="margin-top: 0; color: var(--accent)">Case Briefing</h2>
+            
+            <div class="input-group">
+                <label>Identify Subject</label>
+                <input type="text" id="subjectIn" autocomplete="off" placeholder="Subject Name">
+            </div>
+
+            <div class="input-group">
+                <label>Article Jurisdiction</label>
+                <input type="text" id="articleIn" autocomplete="off" placeholder="e.g. 1 to 4">
+            </div>
+
+            <div class="input-group hidden" id="amendmentBox">
+                <label>Legal Amendment</label>
+                <input type="text" id="amendmentIn" placeholder="e.g. 42nd, 1976">
+            </div>
+
+            <button class="btn-submit" onclick="judgePart()">Submit to Record</button>
+            <div id="msg-box"></div>
+        </div>
+    </main>
+
+    <aside class="history-panel">
+        <div class="history-header">
+            <span>Case History</span>
+            <span id="score">0/26</span>
+        </div>
+        <div class="log-container" id="logContainer">
+            <!-- Table data entries appear here -->
+        </div>
+    </aside>
+
+    <!-- CHAPTER MODAL IN CARD FORMAT -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <h2 style="color: var(--accent); margin: 0; text-align: center;">Chapter Battle</h2>
+            <p style="text-align: center; color: #666; font-size: 0.8rem; margin-bottom: 10px;">Fill the cards for each chapter in this part.</p>
+            
+            <div class="chapter-grid" id="chapterInputsContainer"></div>
+
+            <button class="btn-submit" onclick="judgeChapters()" style="margin-top: 20px;">Authorize Chapters</button>
+            <button onclick="document.getElementById('modalOverlay').style.display='none'" 
+                    style="background:transparent; color: #555; border:none; margin-top:10px; cursor:pointer; width: 100%;">Cancel Request</button>
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            { part: "1", subject: "Union and its territory", articles: "1 to 4" },
+            { part: "2", subject: "Citizenship", articles: "5 to 11" },
+            { part: "3", subject: "Fundamental Rights", articles: "12 to 35" },
+            { part: "4", subject: "DPSP", articles: "36 to 51" },
+            { part: "4A", subject: "Fundamental Duties", articles: "51A", amendment: ["42", "1976"] },
+            {
+                part: "5", subject: "Union", articles: "52 to 151",
+                chapters: [
+                    { n: "1", s: "Executive", a: "52 to 78" },
+                    { n: "2", s: "Parliament", a: "79 to 122" },
+                    { n: "3", s: "Legislative powers of president", a: "123" },
+                    { n: "4", s: "Union Judiciary", a: "124 to 147" },
+                    { n: "5", s: "CAG", a: "148 to 151" }
+                ]
+            },
+            {
+                part: "6", subject: "States", articles: "152 to 237",
+                chapters: [
+                    { n: "1", s: "General", a: "152" },
+                    { n: "2", s: "Executive", a: "153 to 167" },
+                    { n: "3", s: "State Legislature", a: "168 to 212" },
+                    { n: "4", s: "Legislative powers of Governor", a: "213" },
+                    { n: "5", s: "High Courts", a: "214 to 232" },
+                    { n: "6", s: "Sub-ordinate Courts", a: "233 to 237" }
+                ]
+            },
+            { part: "7", subject: "Princely States (Repealed)", articles: "238", amendment: ["7", "1956"] },
+            { part: "8", subject: "Union Territories", articles: "239 to 242" },
+            { part: "9", subject: "Panchayats", articles: "243 to 243O" },
+            { part: "9A", subject: "Muncipalities", articles: "243P to 243ZG", amendment: ["74", "1992"] },
+            { part: "9B", subject: "Co-operative Societies", articles: "243ZH to 243ZT", amendment: ["97", "2011"] },
+            { part: "10", subject: "Scheduled and tribal areas", articles: "244 to 244A" },
+            { part: "11", subject: "Relation between Union and States", articles: "245 to 263",
+                chapters: [
+                    { n: "1", s: "Legislative Relations", a: "245 to 255" },
+                    { n: "2", s: "Administrative Relations", a: "256 to 263" }
+                ]
+            },
+            { part: "12", subject: "Finance, Property, Contract and Suits", articles: "264 to 300A" },
+            { part: "13", subject: "Trade, Commerce and Intercourse within territory of India", articles: "301 to 307" },
+            { part: "14", subject: "Services under Union and States", articles: "308 to 323" },
+            { part: "14A", subject: "Tribunals", articles: "323A to 323B", amendment: ["42", "1976"] },
+            { part: "15", subject: "Elections", articles: "324 to 329A" },
+            { part: "16", subject: "Special Provisions relating to Certain classes", articles: "330 to 342" },
+            { part: "17", subject: "Official Language", articles: "343 to 351" },
+            { part: "18", subject: "Emergency Provisions", articles: "352 to 360" },
+            { part: "19", subject: "Miscellaneous", articles: "361 to 367" },
+            { part: "20", subject: "Amendment of Constitution", articles: "368" },
+            { part: "21", subject: "Temporary, Transitional and Special Provisions", articles: "369 to 392" },
+            { part: "22", subject: "Short Title, Commencement, Authoratative text in hindi and repeals", articles: "393 to 395" }
+        ];
+
+        let currentIndex = 0;
+        let solvedCount = 0;
+
+        // Init UI Rail
+        const rail = document.getElementById('sideRail');
+        data.forEach((item, i) => {
+            const node = document.createElement('div');
+            node.className = 'rail-node';
+            node.innerText = item.part;
+            node.id = `rail-${i}`;
+            node.onclick = () => selectPart(i);
+            rail.appendChild(node);
+        });
+
+        function selectPart(i) {
+            currentIndex = i;
+            document.querySelectorAll('.rail-node').forEach(n => n.classList.remove('active'));
+            const activeNode = document.getElementById(`rail-${i}`);
+            activeNode.classList.add('active');
+            activeNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            document.getElementById('partTitle').innerText = `PART ${data[i].part}`;
+            document.getElementById('partBg').innerText = data[i].part;
+            document.getElementById('amendmentBox').classList.toggle('hidden', !data[i].amendment);
+            document.getElementById('subjectIn').value = "";
+            document.getElementById('articleIn').value = "";
+            document.getElementById('amendmentIn').value = "";
+            document.getElementById('msg-box').innerText = "";
+            document.getElementById('subjectIn').focus();
+        }
+
+        function addToLog(part, subject, isPass) {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${isPass ? 'pass' : 'fail'}`;
+            entry.innerHTML = `
+                <span class="log-part">PART ${part} • ${isPass ? 'VERIFIED' : 'REJECTED'}</span>
+                <span class="log-sub">${subject || "Unknown Entry"}</span>
+            `;
+            container.prepend(entry);
+        }
+
+        function judgePart() {
+            const target = data[currentIndex];
+            const sub = document.getElementById('subjectIn').value.trim();
+            const art = document.getElementById('articleIn').value.replace(/\s/g, '').toUpperCase();
+            const amd = document.getElementById('amendmentIn').value.toLowerCase();
+
+            let isCorrect = (sub.toLowerCase() === target.subject.toLowerCase() && art === target.articles.replace(/\s/g, '').toUpperCase());
+            if (target.amendment && !target.amendment.every(k => amd.includes(k.toLowerCase()))) isCorrect = false;
+
+            if (isCorrect) {
+                if (target.chapters) openChapterModal(target);
+                else handleSuccess(target.part, target.subject);
+            } else handleFailure(target.part, sub);
+        }
+
+        function openChapterModal(target) {
+            document.getElementById('modalOverlay').style.display = 'flex';
+            const container = document.getElementById('chapterInputsContainer');
+            container.innerHTML = '';
+            target.chapters.forEach((ch, idx) => {
+                container.innerHTML += `
+                    <div class="chapter-battle-card" style="animation-delay: ${idx * 0.1}s">
+                        <label>CHAPTER ${ch.n}</label>
+                        <input type="text" class="ch-sub" placeholder="Subject Name">
+                        <input type="text" class="ch-art" placeholder="Article Range">
+                    </div>`;
+            });
+        }
+
+        function judgeChapters() {
+            const target = data[currentIndex];
+            const subs = document.querySelectorAll('.ch-sub');
+            const arts = document.querySelectorAll('.ch-art');
+            let allCorrect = true;
+
+            target.chapters.forEach((ch, i) => {
+                const s = subs[i].value.trim().toLowerCase();
+                const a = arts[i].value.replace(/\s/g, '').toUpperCase();
+                if (s !== ch.s.toLowerCase() || a !== ch.a.replace(/\s/g, '').toUpperCase()) allCorrect = false;
+            });
+
+            if (allCorrect) {
+                document.getElementById('modalOverlay').style.display = 'none';
+                handleSuccess(target.part, target.subject);
+            } else handleFailure(target.part, target.subject + " (Chapter Error)");
+        }
+
+        function handleSuccess(p, s) {
+            addToLog(p, s, true);
+            solvedCount++;
+            document.getElementById('score').innerText = `${solvedCount}/26`;
+            document.getElementById(`rail-${currentIndex}`).classList.add('completed');
+            document.getElementById('msg-box').innerText = "✅ RECORD AUTHORIZED";
+            document.getElementById('msg-box').style.color = "var(--success)";
+            confetti({ particleCount: 50, spread: 60, colors: ['#facc15'] });
+            setTimeout(() => { if (currentIndex < data.length - 1) selectPart(currentIndex + 1); }, 1200);
+        }
+
+        function handleFailure(p, s) {
+            addToLog(p, s, false);
+            document.getElementById('msg-box').innerText = "❌ EVIDENCE REJECTED";
+            document.getElementById('msg-box').style.color = "var(--error)";
+            document.getElementById('gameCard').classList.add('shake');
+            setTimeout(() => document.getElementById('gameCard').classList.remove('shake'), 400);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('modalOverlay').style.display === 'flex') judgeChapters();
+                else judgePart();
+            }
+        });
+
+        selectPart(0);
+    </script>
+</body>
+</html>

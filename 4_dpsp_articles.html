@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DPSP Article Challenge</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgb(51, 8, 67);
+            background-size: 400% 400%;
+            animation: bg 12s ease infinite;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        @keyframes bg {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            width: 950px;
+            max-width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .12);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .2);
+            border-radius: 25px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, .1);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .score-item h3 {
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .score-item p {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            height: 15px;
+            background: rgba(255, 255, 255, .15);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            transition: .5s;
+        }
+
+        .question-box {
+            background: rgba(255, 255, 255, .08);
+            padding: 25px;
+            border-radius: 20px;
+        }
+
+        .question-box h2 {
+            margin-bottom: 15px;
+        }
+
+        .description {
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            flex: 1;
+            min-width: 180px;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            padding: 14px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: .3s;
+        }
+
+        .submitBtn {
+            background: #22c55e;
+            color: white;
+        }
+
+        .startBtn {
+            background: #2563eb;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 50px;
+        }
+
+        .correct {
+            color: #4ade80;
+        }
+
+        .wrong {
+            color: #f87171;
+        }
+
+        .shake {
+            animation: shake .5s;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-8px)
+            }
+
+            50% {
+                transform: translateX(8px)
+            }
+
+            75% {
+                transform: translateX(-8px)
+            }
+
+            100% {
+                transform: translateX(0)
+            }
+        }
+
+        .end-screen {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .end-screen h2 {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
+        @media(max-width:700px) {
+
+            .scoreboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .inputs {
+                flex-direction: column;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="card" id="gameCard">
+
+            <h1>🏛 DPSP Article Challenge</h1>
+
+            <div class="scoreboard">
+
+                <div class="score-item">
+                    <h3>Score</h3>
+                    <p id="score">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Correct</h3>
+                    <p id="correct">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Wrong</h3>
+                    <p id="wrong">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Streak 🔥</h3>
+                    <p id="streak">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Best</h3>
+                    <p id="best">0</p>
+                </div>
+
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="question-box">
+
+                <h2>Identify the DPSP Article</h2>
+
+                <p class="description" id="description">
+                    Press Start Game
+                </p>
+
+                <div class="inputs">
+
+                    <input type="text" id="articleInput" placeholder="Article Number (Ex: 43B)">
+
+                    <input type="text" id="amendmentInput" placeholder="Amendment (Ex: 97,2011)"
+                        onkeydown="handleEnter(event)">
+
+                    <button class="submitBtn" onclick="submitAnswer()">
+                        Submit
+                    </button>
+
+                    <button class="startBtn" onclick="startGame()">
+                        Start
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <div class="end-screen" id="endScreen">
+
+                <h2>🏆 Quiz Completed</h2>
+
+                <p>Total Questions : <span id="finalTotal"></span></p>
+                <p>Correct : <span id="finalCorrect"></span></p>
+                <p>Wrong : <span id="finalWrong"></span></p>
+                <p>Accuracy : <span id="finalAccuracy"></span>%</p>
+
+                <div class="badge" id="badge"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        /* ==========================================
+        PASTE DPSP ARRAY HERE
+        ========================================== */
+
+        const dpspArticles = [
+
+            {
+                article: "36",
+                amendment: "",
+                description: "Definition of State"
+            },
+
+            {
+                article: "37",
+                amendment: "",
+                description: "Application of the principles contained in this part"
+            },
+
+            {
+                article: "38(1)",
+                amendment: "",
+                description: "State shall strive to promote welfare of people by securing a social order in which social, economic and political justice shall prevail."
+            },
+
+            {
+                article: "38(2)",
+                amendment: "44,1978",
+                description: "State must also try to minimize income inequality and eliminate the inequalities of status, facilities and opportunities."
+            },
+
+            {
+                article: "39(a)",
+                amendment: "",
+                description: "State shall ensure citizens that men and women equally have right to adequate means of livelihood."
+            },
+
+            {
+                article: "39(b)",
+                amendment: "",
+                description: "Ownership and Control of material resources of the community shall be so distributed so as to subserve the common interest."
+            },
+
+            {
+                article: "39(c)",
+                amendment: "",
+                description: "State shall prevent concentration of wealth and the means of production."
+            },
+
+            {
+                article: "39(d)",
+                amendment: "",
+                description: "It ensures equal pay of equal work for both men and women."
+            },
+
+            {
+                article: "39(e)",
+                amendment: "",
+                description: "It ensures health of the workers and ensures that Children are not abused and citizens are not forced by economic needs to take a vocation which is not suitable to their age or strength."
+            },
+
+            {
+                article: "39(f)",
+                amendment: "42,1976",
+                description: "Children must have opportunity to develop in a healthy way and must be protected against exploitation."
+            },
+
+            {
+                article: "39A",
+                amendment: "42,1976",
+                description: "It provides equal justice to all and free legal aid to poor."
+            },
+
+            {
+                article: "40",
+                amendment: "",
+                description: "State must organize village panchayats and promotes self govt."
+            },
+
+            {
+                article: "41",
+                amendment: "",
+                description: "It secures the right to work and education and assistance to old seek and disabled."
+            },
+
+            {
+                article: "42",
+                amendment: "",
+                description: "It secures just and humane work conditions and maternity relief."
+            },
+
+            {
+                article: "43",
+                amendment: "",
+                description: "It secures living wage and enjoyable life as well as social cultural opportunities to all the workers and promote cottage industries."
+            },
+
+            {
+                article: "43A",
+                amendment: "42,1976",
+                description: "It ensures participation of workers in the management of industries."
+            },
+
+            {
+                article: "43B",
+                amendment: "97,2011",
+                description: "It promotes Co-operative societies."
+            },
+
+            {
+                article: "44",
+                amendment: "",
+                description: "Uniform Civil Code"
+            },
+
+            {
+                article: "45",
+                amendment: "",
+                description: "It provide early childhood care and education to all children upto age 6."
+            },
+
+            {
+                article: "46",
+                amendment: "",
+                description: "It promote educational and economic interest of SCs, STs and other weaker section and protect them from social injustice and exploitation."
+            },
+
+            {
+                article: "47",
+                amendment: "",
+                description: "State shall raise the level of nutrition and health and standard of living of people and prohibit the consumption of intoxicating drinks and drugs which are injurious."
+            },
+
+            {
+                article: "48",
+                amendment: "",
+                description: "It organizes agriculture and animal husbandry on modern scientific lines and prevent the slaughter of calves and other milch and draught animals and improve their breed."
+            },
+
+            {
+                article: "48A",
+                amendment: "42,1976",
+                description: "It improves and protect environment, forest and wildlife."
+            },
+
+            {
+                article: "49",
+                amendment: "",
+                description: "Protect monuments, places and objects of artistic and historic value which are of national importance."
+            },
+
+            {
+                article: "50",
+                amendment: "",
+                description: "Separate executive from judiciary in public services of state."
+            },
+
+            {
+                article: "51",
+                amendment: "",
+                description: "Promotes international peace and security"
+            },
+
+            {
+                article: "350A",
+                amendment: "7,1956",
+                description: "It directs the states and local authorities within the states to provide adequate facilities for instructions in mothertongue at primary stage to the children of linguistic minorities."
+            },
+
+            {
+                article: "351",
+                amendment: "",
+                description: "It directs the government to promote the spread of hindi so that it may serve as a medium of expression of all the elements of composite culture of India."
+            },
+
+            {
+                article: "335",
+                amendment: "",
+                description: "It directs that the claims of SCs and STs shall be taken into consideration along with maintaining the efficiency of administration while making appointments to government services."
+            }
+
+        ];
+
+        /* ========================================== */
+
+        let remainingQuestions = [];
+        let currentQuestion = null;
+
+        let score = 0;
+        let correct = 0;
+        let wrong = 0;
+        let streak = 0;
+
+        function startGame() {
+
+            remainingQuestions = [...dpspArticles];
+
+            score = 0;
+            correct = 0;
+            wrong = 0;
+            streak = 0;
+
+            updateScoreboard();
+
+            document.getElementById("endScreen").style.display = "none";
+
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+
+            if (remainingQuestions.length === 0) {
+                endGame();
+                return;
+            }
+
+            const randomIndex =
+                Math.floor(
+                    Math.random() * remainingQuestions.length
+                );
+
+            currentQuestion =
+                remainingQuestions.splice(randomIndex, 1)[0];
+
+            document.getElementById("description").textContent =
+                currentQuestion.description;
+
+            document.getElementById("articleInput").value = "";
+            document.getElementById("amendmentInput").value = "";
+
+            updateProgress();
+        }
+
+        function submitAnswer() {
+
+            if (!currentQuestion) return;
+
+            const article =
+                document.getElementById("articleInput")
+                    .value.trim();
+
+            const amendment =
+                document.getElementById("amendmentInput")
+                    .value.trim();
+
+            const result =
+                document.getElementById("result");
+
+            const correctArticle =
+                currentQuestion.article;
+
+            const correctAmendment =
+                currentQuestion.amendment || "";
+
+            const articleCorrect =
+                article.toUpperCase() ===
+                correctArticle.toUpperCase();
+
+            let answerCorrect = false;
+
+            if (correctAmendment === "") {
+
+                // Article without amendment
+                answerCorrect = articleCorrect;
+
+            } else {
+
+                // Article with amendment
+                answerCorrect =
+                    articleCorrect &&
+                    amendment === correctAmendment;
+
+            }
+
+            if (answerCorrect) {
+
+                score++;
+                correct++;
+                streak++;
+
+                result.className = "result correct";
+                result.innerHTML = "✅ Correct";
+
+            } else {
+
+                wrong++;
+                streak = 0;
+
+                document
+                    .getElementById("gameCard")
+                    .classList.add("shake");
+
+                setTimeout(() => {
+                    document
+                        .getElementById("gameCard")
+                        .classList.remove("shake");
+                }, 500);
+
+                result.className = "result wrong";
+
+                result.innerHTML =
+                    `❌ Wrong<br>
+Answer : ${correctArticle}
+${correctAmendment ? "<br>Amendment : " + correctAmendment : ""}
+`;
+
+            }
+
+            updateScoreboard();
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 2200);
+        }
+
+        function updateScoreboard() {
+
+            document.getElementById("score").textContent = score;
+            document.getElementById("correct").textContent = correct;
+            document.getElementById("wrong").textContent = wrong;
+            document.getElementById("streak").textContent = streak;
+
+            let best =
+                Number(localStorage.getItem("dpspBest") || 0);
+
+            best = Math.min(
+                Math.max(best, correct),
+                dpspArticles.length
+            );
+
+            localStorage.setItem("dpspBest", best);
+
+            document.getElementById("best").textContent = best;
+        }
+
+        function updateProgress() {
+
+            const completed =
+                dpspArticles.length -
+                remainingQuestions.length;
+
+            const percent =
+                (completed / dpspArticles.length) * 100;
+
+            document.getElementById("progressBar")
+                .style.width = percent + "%";
+        }
+
+        function endGame() {
+
+            const accuracy =
+                ((correct / dpspArticles.length) * 100)
+                    .toFixed(2);
+
+            document.getElementById("finalTotal")
+                .textContent = dpspArticles.length;
+
+            document.getElementById("finalCorrect")
+                .textContent = correct;
+
+            document.getElementById("finalWrong")
+                .textContent = wrong;
+
+            document.getElementById("finalAccuracy")
+                .textContent = accuracy;
+
+            let badge = "";
+
+            if (correct === dpspArticles.length)
+                badge = "👑 Constitution Master";
+
+            else if (correct >= 20)
+                badge = "⚔ Directive Warrior";
+
+            else if (correct >= 10)
+                badge = "📚 DPSP Beginner";
+
+            document.getElementById("badge")
+                .textContent = badge;
+
+            document.getElementById("endScreen")
+                .style.display = "block";
+
+            document.getElementById("description")
+                .textContent = "Quiz Finished 🎉";
+
+            document.getElementById("result")
+                .textContent = "";
+        }
+
+        function handleEnter(event) {
+
+            if (event.key === "Enter") {
+                submitAnswer();
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>

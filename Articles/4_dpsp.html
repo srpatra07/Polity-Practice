@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DPSP Practice Game</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(-45deg,#0f172a,#1e293b,#0f3546,#22c55e);
+background-size:400% 400%;
+animation:bg 12s ease infinite;
+overflow:hidden;
+}
+
+@keyframes bg{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+
+.card{
+width:90%;
+max-width:700px;
+background:rgba(255,255,255,0.1);
+backdrop-filter:blur(15px);
+padding:30px;
+border-radius:25px;
+box-shadow:0 8px 32px rgba(0,0,0,.3);
+text-align:center;
+color:white;
+animation:fadeIn .7s;
+}
+
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+h1{
+margin-bottom:15px;
+}
+
+.mode{
+font-size:18px;
+margin-bottom:10px;
+color:#facc15;
+}
+
+.article{
+font-size:42px;
+font-weight:bold;
+margin:20px 0;
+animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.08)}
+100%{transform:scale(1)}
+}
+
+input{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+font-size:18px;
+margin-top:10px;
+}
+
+button{
+margin-top:15px;
+padding:12px 25px;
+font-size:18px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+background:#22c55e;
+color:white;
+transition:.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+.feedback{
+margin-top:20px;
+font-size:20px;
+min-height:60px;
+}
+
+.score{
+margin-top:20px;
+font-size:22px;
+}
+
+.progress{
+height:20px;
+background:rgba(255,255,255,.2);
+border-radius:20px;
+overflow:hidden;
+margin-top:20px;
+}
+
+.progressFill{
+height:100%;
+width:0%;
+background:#facc15;
+transition:.5s;
+}
+
+.correct{
+color:#4ade80;
+}
+
+.wrong{
+color:#f87171;
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h1>📜 DPSP Practice Game</h1>
+
+<div class="mode" id="mode">
+Sequential Mode
+</div>
+
+<div class="article" id="articleNumber">
+Article 36
+</div>
+
+<input
+id="answer"
+placeholder="Enter subject/topic..."
+autocomplete="off"
+/>
+
+<button onclick="checkAnswer()">
+Submit
+</button>
+
+<div class="feedback" id="feedback"></div>
+
+<div class="score">
+Score :
+<span id="score">0</span>
+</div>
+
+<div class="progress">
+<div class="progressFill" id="progressFill"></div>
+</div>
+
+</div>
+
+<script>
+
+const articles = [
+
+{
+number:"36",
+title:"Definition of State",
+keywords:["definition","state"]
+},
+
+{
+number:"37",
+title:"Application of the principles contained in this part",
+keywords:["application","principles"]
+},
+
+{
+number:"38",
+title:"Social order welfare of people",
+keywords:["social order","welfare","people"]
+},
+
+{
+number:"39",
+title:"Principles of policy",
+keywords:["policy","principles"]
+},
+
+{
+number:"39A",
+title:"Equal justice and free legal aid",
+keywords:["justice","legal aid","equal"]
+},
+
+{
+number:"40",
+title:"Organization of village panchayats",
+keywords:["village","panchayat","panchayats"]
+},
+
+{
+number:"41",
+title:"Right to work education public assistance",
+keywords:["work","education","public assistance"]
+},
+
+{
+number:"42",
+title:"Humane work conditions and maternity relief",
+keywords:["maternity","work conditions","humane"]
+},
+
+{
+number:"43",
+title:"Living wage",
+keywords:["living wage","workers"]
+},
+
+{
+number:"43A",
+title:"Participation of workers in management",
+keywords:["workers","management","industries"]
+},
+
+{
+number:"44",
+title:"Uniform Civil Code",
+keywords:["uniform civil code","ucc"]
+},
+
+{
+number:"45",
+title:"Early childhood care and education",
+keywords:["childhood","education","children"]
+},
+
+{
+number:"46",
+title:"SC ST weaker sections",
+keywords:["sc","st","weaker sections"]
+},
+
+{
+number:"47",
+title:"Nutrition public health standard of living",
+keywords:["nutrition","public health","living"]
+},
+
+{
+number:"48",
+title:"Agriculture and animal husbandry",
+keywords:["agriculture","animal husbandry"]
+},
+
+{
+number:"48A",
+title:"Environment forests wildlife",
+keywords:["environment","forest","wildlife"]
+},
+
+{
+number:"49",
+title:"National monuments protection",
+keywords:["monuments","national importance"]
+},
+
+{
+number:"50",
+title:"Separation of judiciary from executive",
+keywords:["judiciary","executive","separation"]
+},
+
+{
+number:"51",
+title:"International peace and security",
+keywords:["international peace","security"]
+}
+
+];
+
+let currentIndex=0;
+let score=0;
+let randomMode=false;
+
+function updateQuestion(){
+
+document.getElementById("articleNumber").innerText=
+"Article "+articles[currentIndex].number;
+
+document.getElementById("answer").value="";
+}
+
+function checkAnswer(){
+
+let user=document.getElementById("answer")
+.value
+.toLowerCase()
+.trim();
+
+let article=articles[currentIndex];
+
+let points=0;
+
+article.keywords.forEach(k=>{
+if(user.includes(k.toLowerCase()))
+points++;
+});
+
+let gained=Math.round(
+(points/article.keywords.length)*10
+);
+
+score+=gained;
+
+document.getElementById("score").innerText=score;
+
+if(gained>=5){
+
+document.getElementById("feedback").innerHTML=
+`<div class='correct'>
+✅ ${gained}/10
+<br>
+Correct Topic:
+${article.title}
+</div>`;
+}
+else{
+
+document.getElementById("feedback").innerHTML=
+`<div class='wrong'>
+❌ ${gained}/10
+<br>
+Correct Topic:
+${article.title}
+</div>`;
+}
+
+if(!randomMode){
+
+currentIndex++;
+
+let progress=
+(currentIndex/articles.length)*100;
+
+document.getElementById("progressFill")
+.style.width=progress+"%";
+
+if(currentIndex>=articles.length){
+
+randomMode=true;
+
+document.getElementById("mode")
+.innerText=
+"🎲 Random Mode Activated";
+
+currentIndex=
+Math.floor(Math.random()*articles.length);
+
+}
+}
+else{
+
+currentIndex=
+Math.floor(Math.random()*articles.length);
+}
+
+updateQuestion();
+}
+
+updateQuestion();
+
+document.getElementById("answer")
+.addEventListener("keypress",function(e){
+
+if(e.key==="Enter"){
+checkAnswer();
+}
+
+});
+
+
+/*
+
+FUTURE FEATURES
+
+1. Streak System
+
+let streak=0;
+
+if(gained>=5){
+streak++;
+}else{
+streak=0;
+}
+
+2. XP System
+
+let xp=0;
+xp+=gained;
+
+3. Levels
+
+Level 1 : 0-100 XP
+Level 2 : 100-250 XP
+Level 3 : 250-500 XP
+
+4. Wrong Answer Revision Mode
+
+let wrongQuestions=[];
+
+if(gained<5){
+wrongQuestions.push(article);
+}
+
+5. Timer Mode
+
+let timeLeft=15;
+
+6. Leaderboard using LocalStorage
+
+localStorage.setItem("bestScore",score);
+
+7. Voice Recognition
+
+SpeechRecognition API
+
+8. Reverse Practice
+
+Show subject
+User enters article number
+
+9. Night Mode Toggle
+
+10. Confetti Animation
+on perfect score
+
+*/
+
+</script>
+
+</body>
+</html>
+

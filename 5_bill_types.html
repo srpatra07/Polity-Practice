@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution Bills Practice</title>
+    <style>
+        :root {
+            --bg-body: #0a0e14;
+            --bg-table: #161b22;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --accent-blue: #58a6ff;
+            --correct-green: #238636;
+            --wrong-red: #da3633;
+            --header-bg: #21262d;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh; /* Force single page height */
+            overflow: hidden; /* Disable body scroll */
+        }
+
+        h1 {
+            color: var(--accent-blue);
+            margin: 5px 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        p {
+            margin: 0 0 10px 0;
+            color: #8b949e;
+            font-size: 0.9rem;
+            animation: fadeIn 1.2s ease;
+        }
+
+        /* Table Styling */
+        .table-container {
+            width: 100%;
+            max-width: 1400px;
+            flex: 1; /* Stretch to fill remaining height */
+            display: flex;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-table);
+            animation: slideInUp 0.6s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Ensures columns stay equal width */
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            text-align: center;
+            word-wrap: break-word;
+            overflow: hidden;
+            font-size: 0.8rem;
+        }
+
+        .static-header {
+            background-color: var(--header-bg);
+            color: var(--accent-blue);
+            font-weight: bold;
+            height: 40px;
+        }
+
+        .category-column {
+            background-color: var(--header-bg);
+            color: #f0f6fc;
+            text-align: left;
+            width: 150px;
+            font-weight: 600;
+            padding-left: 10px;
+        }
+
+        /* Practice Cells */
+        .practice-cell {
+            cursor: pointer;
+            position: relative;
+            background: transparent;
+            transition: background 0.2s;
+            height: auto;
+        }
+
+        .practice-cell:hover {
+            background-color: #1c2128;
+        }
+
+        .practice-cell.empty::after {
+            content: "?";
+            color: #484f58;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Result Styles */
+        .result-text {
+            display: block;
+            font-weight: 500;
+            line-height: 1.1;
+        }
+
+        .symbol {
+            font-size: 1rem;
+            margin-top: 2px;
+            display: inline-block;
+        }
+
+        .correct {
+            background-color: rgba(35, 134, 54, 0.15) !important;
+            color: #3fb950;
+        }
+
+        .wrong {
+            background-color: rgba(218, 54, 51, 0.1) !important;
+            color: #f85149;
+        }
+
+        .correct-ans-display {
+            display: block;
+            font-size: 0.7rem;
+            color: #8b949e;
+            margin-top: 4px;
+            border-top: 1px dashed #f85149;
+            padding-top: 2px;
+        }
+
+        /* Modal Input */
+        #input-overlay {
+            position: fixed;
+            display: none;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .input-card {
+            background: #1c2128;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-blue);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #input-overlay.active .input-card {
+            transform: scale(1);
+        }
+
+        #guess-input {
+            width: 100%;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .btn-submit {
+            background: var(--accent-blue);
+            color: #0d1117;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeInDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+
+<body>
+
+    <h1>Constitutional Bills Practice</h1>
+
+    <div class="table-container">
+        <table id="practiceTable">
+            <thead>
+                <tr id="header-row">
+                    <th class="static-header" style="width: 150px;">Feature</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <div id="input-overlay">
+        <div class="input-card">
+            <h3 id="modal-title" style="margin-top:0; color:var(--accent-blue)"></h3>
+            <p id="modal-context" style="font-size: 0.9rem; margin-bottom: 15px; color: #8b949e"></p>
+            <input type="text" id="guess-input" placeholder="Type your guess..." autocomplete="off">
+            <button class="btn-submit" onclick="submitGuess()">Check Answer</button>
+        </div>
+    </div>
+
+    <script>
+        // Updated keys to match exactly with the 'bills' array
+        const bills = ["Ordinary Bill", "Money Bill", "Financial Bill Category A/1", "Financial Bill Category B/2", "Constitutinal Amendment Bill"];
+
+        const criteria = [
+            "Meaning and Article",
+            "Introduced In",
+            "Recommendation of President",
+            "Majority Required",
+            "Legislative powers of RS and LS",
+            "Dead Lock"
+        ];
+
+        const data = {
+            "Ordinary Bill": {
+                "Meaning and Article": "Any bill remaining",
+                "Introduced In": "Either house",
+                "Recommendation of President": "No except Article 3",
+                "Majority Required": "Simple",
+                "Legislative powers of RS and LS": "LS = RS",
+                "Dead Lock": "Joint sitting"
+            },
+            "Money Bill": {
+                "Meaning and Article": "Exclusively deals with money matters UA 110(1)(a) to 110(1)(g)",
+                "Introduced In": "Only in Lok Sabha",
+                "Recommendation of President": "Yes",
+                "Majority Required": "Simple",
+                "Legislative powers of RS and LS": "LS > RS",
+                "Dead Lock": "Not possible"
+            },
+            "Financial Bill Category A/1": {
+                "Meaning and Article": "Article 117(1) includes Non money matters and Money matters UA 110(1)(a) to 110(1)(g)",
+                "Introduced In": "Only in Lok Sabha",
+                "Recommendation of President": "Yes",
+                "Majority Required": "Simple",
+                "Legislative powers of RS and LS": "LS = RS",
+                "Dead Lock": "Joint sitting"
+            },
+            "Financial Bill Category B/2": {
+                "Meaning and Article": "Article 117(3) includes Non money matters and money matters not UA Article 110(1)(a) to Article 110(1)(g)",
+                "Introduced In": "Either house",
+                "Recommendation of President": "Yes",
+                "Majority Required": "Simple",
+                "Legislative powers of RS and LS": "LS = RS",
+                "Dead Lock": "Joint sitting"
+            },
+            "Constitutinal Amendment Bill": {
+                "Meaning and Article": "Article 368",
+                "Introduced In": "Either house",
+                "Recommendation of President": "No",
+                "Majority Required": "Special",
+                "Legislative powers of RS and LS": "LS = RS",
+                "Dead Lock": "Bill lapse"
+            }
+        };
+
+        let activeCell = null;
+
+        function initTable() {
+            const headerRow = document.getElementById('header-row');
+            const tbody = document.getElementById('table-body');
+
+            bills.forEach(bill => {
+                const th = document.createElement('th');
+                th.className = 'static-header';
+                th.textContent = bill;
+                headerRow.appendChild(th);
+            });
+
+            criteria.forEach(crit => {
+                const tr = document.createElement('tr');
+                const tdLabel = document.createElement('td');
+                tdLabel.className = 'category-column';
+                tdLabel.textContent = crit;
+                tr.appendChild(tdLabel);
+
+                bills.forEach(bill => {
+                    const td = document.createElement('td');
+                    td.className = 'practice-cell empty';
+                    td.dataset.bill = bill;
+                    td.dataset.crit = crit;
+                    td.onclick = () => openInput(td);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openInput(cell) {
+            if (cell.classList.contains('answered')) return;
+            activeCell = cell;
+            document.getElementById('modal-title').innerText = cell.dataset.bill;
+            document.getElementById('modal-context').innerText = cell.dataset.crit;
+            document.getElementById('guess-input').value = "";
+            document.getElementById('input-overlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('input-overlay').classList.add('active'), 10);
+            document.getElementById('guess-input').focus();
+        }
+
+        function submitGuess() {
+            const input = document.getElementById('guess-input');
+            const userGuess = input.value.trim().toLowerCase();
+            const correctValue = data[activeCell.dataset.bill][activeCell.dataset.crit];
+            const target = correctValue.toLowerCase();
+
+            activeCell.innerHTML = "";
+            activeCell.classList.remove('empty');
+            activeCell.classList.add('answered');
+
+            const isCorrect = checkLogic(userGuess, target);
+
+            if (isCorrect) {
+                activeCell.classList.add('correct');
+                activeCell.innerHTML = `<span class="result-text">${input.value}</span><span class="symbol">✅</span>`;
+            } else {
+                activeCell.classList.add('wrong');
+                activeCell.innerHTML = `<span class="result-text">${input.value || "---"}</span><span class="symbol">❌</span><span class="correct-ans-display">${correctValue}</span>`;
+            }
+            closeModal();
+        }
+
+        function checkLogic(guess, target) {
+            if (!guess) return false;
+            if (guess === target) return true;
+            
+            // Fuzzy Matching
+            if (target.includes("ls = rs") && (guess.includes("ls=rs") || guess.includes("equal"))) return true;
+            if (target.includes("ls > rs") && (guess.includes("ls>rs") || guess.includes("greater") || guess.includes("more"))) return true;
+            if (target === "yes" && (guess === "y" || guess === "required")) return true;
+            if (target === "no" && (guess === "n" || guess === "not required")) return true;
+
+            // Keyword matching for long text
+            const keywords = target.split(/\s+/).filter(w => w.length > 3);
+            let matches = 0;
+            keywords.forEach(word => {
+                if (guess.includes(word.replace(/[^a-z0-9]/g, ''))) matches++;
+            });
+            return (matches / keywords.length) >= 0.4 || target.includes(guess) && guess.length > 4;
+        }
+
+        function closeModal() {
+            document.getElementById('input-overlay').classList.remove('active');
+            setTimeout(() => { document.getElementById('input-overlay').style.display = 'none'; }, 300);
+        }
+
+        document.getElementById('guess-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') submitGuess(); });
+        document.getElementById('input-overlay').addEventListener('click', (e) => { if (e.target.id === 'input-overlay') closeModal(); });
+
+        window.onload = initTable;
+    </script>
+</body>
+
+</html>

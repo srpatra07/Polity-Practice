@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitutional Amendment Challenge</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg,
+                    #0f172a,
+                    #1e3a8a,
+                    #6d28d9,
+                    #2563eb);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            width: 900px;
+            max-width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .score-item h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .score-item p {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            height: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            transition: 0.5s;
+        }
+
+        .question-box {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-box h2 {
+            margin-bottom: 15px;
+        }
+
+        .description {
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            flex: 1;
+            min-width: 180px;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            padding: 14px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #22c55e;
+            color: white;
+            transition: .3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 35px;
+        }
+
+        .correct {
+            color: #4ade80;
+        }
+
+        .wrong {
+            color: #f87171;
+        }
+
+        .shake {
+            animation: shake .5s;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
+
+            75% {
+                transform: translateX(-8px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .end-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .end-screen h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .end-screen p {
+            margin: 10px;
+            font-size: 22px;
+        }
+
+        @media(max-width:700px) {
+
+            .scoreboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .inputs {
+                flex-direction: column;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="card" id="gameCard">
+
+            <h1>🏛 Constitutional Amendment Challenge</h1>
+
+            <div class="scoreboard">
+
+                <div class="score-item">
+                    <h3>Score</h3>
+                    <p id="score">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Correct</h3>
+                    <p id="correct">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Wrong</h3>
+                    <p id="wrong">0</p>
+                </div>
+
+                <div class="score-item">
+                    <h3>Streak 🔥</h3>
+                    <p id="streak">0</p>
+                </div>
+
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="question-box">
+
+                <h2>Identify the Amendment</h2>
+
+                <p class="description" id="description">
+                    Press Start Game
+                </p>
+
+                <div class="inputs">
+
+                    <input type="number" id="amendmentNumber" placeholder="Amendment Number">
+
+                    <input type="number" id="year" placeholder="Year" onkeydown="handleEnter(event)">
+
+                    <button onclick="submitAnswer()">
+                        Submit
+                    </button>
+
+                    <button onclick="startGame()">
+                        Start
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <div class="end-screen" id="endScreen">
+
+                <h2>🏆 Quiz Completed</h2>
+
+                <p>Total Questions: <span id="finalTotal"></span></p>
+                <p>Correct: <span id="finalCorrect"></span></p>
+                <p>Wrong: <span id="finalWrong"></span></p>
+                <p>Accuracy: <span id="finalAccuracy"></span>%</p>
+                <p>Best Score: <span id="bestScore"></span></p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ===================================
+        // PASTE AMENDMENT ARRAY HERE
+        // ===================================
+
+        const amendments = [
+            {
+                number: 1,
+                year: 1951,
+                description: "Added Ninth Schedule, Article 15(4) and Article 19(6); imposed restrictions on Fundamental Rights for land reforms."
+            },
+            {
+                number: 5,
+                year: 1955,
+                description: "Empowered the President to prescribe a time limit for State Legislatures to give recommendations regarding formation of new states or alteration of existing states."
+            },
+            {
+                number: 7,
+                year: 1956,
+                description: "Reorganized states on linguistic basis and introduced provision for common High Courts for two or more states."
+            },
+            {
+                number: 9,
+                year: 1960,
+                description: "Implemented the Nehru-Noon Agreement and transfer of Berubari Union to Pakistan."
+            },
+            {
+                number: 10,
+                year: 1961,
+                description: "Dadra and Nagar Haveli incorporated into the Indian Union as a Union Territory."
+            },
+            {
+                number: 12,
+                year: 1962,
+                description: "Goa, Daman and Diu incorporated into the Indian Union as a Union Territory."
+            },
+            {
+                number: 13,
+                year: 1962,
+                description: "Created special provisions for Nagaland under Article 371A."
+            },
+            {
+                number: 14,
+                year: 1962,
+                description: "Incorporated Puducherry into the Indian Union and enabled legislatures and councils of ministers in certain Union Territories."
+            },
+            {
+                number: 15,
+                year: 1963,
+                description: "Raised the retirement age of High Court judges from 60 to 62 years and enhanced High Court powers."
+            },
+            {
+                number: 19,
+                year: 1966,
+                description: "Abolished the system of Election Tribunals."
+            },
+            {
+                number: 21,
+                year: 1967,
+                description: "Included Sindhi language in the Eighth Schedule."
+            },
+            {
+                number: 24,
+                year: 1971,
+                description: "Affirmed Parliament's power to amend any part of the Constitution including Fundamental Rights and made Presidential assent mandatory."
+            },
+            {
+                number: 25,
+                year: 1971,
+                description: "Restricted Right to Property and added Article 31C protecting laws implementing Articles 39(b) and 39(c)."
+            },
+            {
+                number: 26,
+                year: 1971,
+                description: "Abolished Privy Purses and royal privileges of former princely rulers."
+            },
+            {
+                number: 35,
+                year: 1974,
+                description: "Granted Sikkim the status of an Associate State of India."
+            },
+            {
+                number: 36,
+                year: 1975,
+                description: "Made Sikkim a full-fledged state of the Union of India."
+            },
+            {
+                number: 42,
+                year: 1976,
+                description: "Known as the Mini Constitution; added Socialist, Secular and Integrity to the Preamble, Fundamental Duties, new DPSPs and curtailed judicial powers."
+            },
+            {
+                number: 44,
+                year: 1978,
+                description: "Restored democratic provisions, removed Right to Property from Fundamental Rights and inserted Article 300A."
+            },
+            {
+                number: 52,
+                year: 1985,
+                description: "Added Tenth Schedule introducing the Anti-Defection Law."
+            },
+            {
+                number: 56,
+                year: 1987,
+                description: "Made Goa a full-fledged state while Daman and Diu remained a Union Territory."
+            },
+            {
+                number: 61,
+                year: 1988,
+                description: "Reduced voting age from 21 years to 18 years."
+            },
+            {
+                number: 65,
+                year: 1990,
+                description: "Established the National Commission for Scheduled Castes and Scheduled Tribes."
+            },
+            {
+                number: 69,
+                year: 1991,
+                description: "Granted special status to Delhi as National Capital Territory and inserted Articles 239AA and 239AB."
+            },
+            {
+                number: 71,
+                year: 1992,
+                description: "Added Konkani, Manipuri and Nepali languages to the Eighth Schedule."
+            },
+            {
+                number: 73,
+                year: 1992,
+                description: "Added Part IX and Eleventh Schedule providing constitutional status to Panchayati Raj Institutions."
+            },
+            {
+                number: 74,
+                year: 1992,
+                description: "Added Part IX-A and Twelfth Schedule providing constitutional status to Municipalities."
+            },
+            {
+                number: 86,
+                year: 2002,
+                description: "Made education for children aged 6-14 years a Fundamental Right through Article 21A and amended Articles 45 and 51A(k)."
+            },
+            {
+                number: 89,
+                year: 2003,
+                description: "Established the National Commission for Scheduled Tribes."
+            },
+            {
+                number: 91,
+                year: 2003,
+                description: "Limited the size of the Council of Ministers and strengthened anti-defection provisions."
+            },
+            {
+                number: 92,
+                year: 2003,
+                description: "Added Bodo, Dogri, Maithili and Santhali languages to the Eighth Schedule."
+            },
+            {
+                number: 93,
+                year: 2005,
+                description: "Provided reservation in admissions to private unaided educational institutions."
+            },
+            {
+                number: 95,
+                year: 2009,
+                description: "Extended reservation of seats for Scheduled Castes and Scheduled Tribes in Lok Sabha and State Assemblies."
+            },
+            {
+                number: 97,
+                year: 2011,
+                description: "Granted constitutional status to Cooperative Societies; added Part IX-B, Article 19(1)(c) and Article 43B."
+            },
+            {
+                number: 99,
+                year: 2014,
+                description: "Introduced the National Judicial Appointments Commission replacing the Collegium System."
+            },
+            {
+                number: 100,
+                year: 2015,
+                description: "Implemented the Land Boundary Agreement with Bangladesh through exchange of enclaves."
+            },
+            {
+                number: 101,
+                year: 2016,
+                description: "Introduced the Goods and Services Tax (GST)."
+            },
+            {
+                number: 102,
+                year: 2018,
+                description: "Granted constitutional status to the National Commission for Backward Classes through Article 338B."
+            },
+            {
+                number: 103,
+                year: 2019,
+                description: "Provided 10 percent reservation for Economically Weaker Sections."
+            },
+            {
+                number: 104,
+                year: 2020,
+                description: "Abolished Anglo-Indian nominated seats in Lok Sabha and State Legislative Assemblies."
+            },
+            {
+                number: 105,
+                year: 2021,
+                description: "Restored States' power to identify and maintain their own lists of Socially and Educationally Backward Classes."
+            },
+            {
+                number: 106,
+                year: 2023,
+                description: "Reserved 33 percent seats for women in Lok Sabha and State Legislative Assemblies."
+            }
+        ];
+
+        // ===================================
+
+        let remainingQuestions = [];
+        let currentQuestion = null;
+
+        let score = 0;
+        let correct = 0;
+        let wrong = 0;
+        let streak = 0;
+        let total = 0;
+
+        function startGame() {
+
+            if (amendments.length === 0) {
+                alert("Paste amendment array first.");
+                return;
+            }
+
+            remainingQuestions = [...amendments];
+
+            score = 0;
+            correct = 0;
+            wrong = 0;
+            streak = 0;
+            total = 0;
+
+            updateScoreboard();
+
+            document.getElementById("endScreen").style.display = "none";
+
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+
+            if (remainingQuestions.length === 0) {
+                endGame();
+                return;
+            }
+
+            const randomIndex =
+                Math.floor(
+                    Math.random() * remainingQuestions.length
+                );
+
+            currentQuestion =
+                remainingQuestions.splice(randomIndex, 1)[0];
+
+            document.getElementById("description")
+                .textContent =
+                currentQuestion.description;
+
+            document.getElementById("amendmentNumber").value = "";
+            document.getElementById("year").value = "";
+
+            updateProgress();
+        }
+
+        // function nextQuestion() {
+
+        //     if (remainingQuestions.length === 0) {
+        //         endGame();
+        //         return;
+        //     }
+
+        //     currentQuestion = remainingQuestions.shift();
+
+        //     document.getElementById("description")
+        //         .textContent =
+        //         currentQuestion.description;
+
+        //     document.getElementById("amendmentNumber").value = "";
+        //     document.getElementById("year").value = "";
+
+        //     document.getElementById("amendmentNumber").focus();
+
+        //     updateProgress();
+        // }
+
+        function submitAnswer() {
+
+            if (!currentQuestion) return;
+
+            const enteredNumber =
+                Number(
+                    document.getElementById("amendmentNumber").value
+                );
+
+            const enteredYear =
+                Number(
+                    document.getElementById("year").value
+                );
+
+            total++;
+
+            const result =
+                document.getElementById("result");
+
+            if (
+                enteredNumber === currentQuestion.number &&
+                enteredYear === currentQuestion.year
+            ) {
+
+                score++;
+                correct++;
+                streak++;
+
+                result.className = "result correct";
+                result.innerHTML = "✅ Correct";
+
+            } else {
+
+                wrong++;
+                streak = 0;
+
+                document
+                    .getElementById("gameCard")
+                    .classList.add("shake");
+
+                setTimeout(() => {
+                    document
+                        .getElementById("gameCard")
+                        .classList.remove("shake");
+                }, 500);
+
+                result.className = "result wrong";
+                result.innerHTML =
+                    `❌ Wrong<br>
+Answer:
+${currentQuestion.number}th Amendment (${currentQuestion.year})`;
+
+            }
+
+            updateScoreboard();
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 2000);
+
+        }
+
+        function updateScoreboard() {
+
+            document.getElementById("score").textContent = score;
+            document.getElementById("correct").textContent = correct;
+            document.getElementById("wrong").textContent = wrong;
+            document.getElementById("streak").textContent = streak;
+
+        }
+
+        function updateProgress() {
+
+            const completed =
+                amendments.length -
+                remainingQuestions.length;
+
+            const percentage =
+                (completed / amendments.length) * 100;
+
+            document
+                .getElementById("progressBar")
+                .style.width =
+                percentage + "%";
+
+        }
+
+        function endGame() {
+
+            const accuracy =
+                ((correct / amendments.length) * 100)
+                    .toFixed(2);
+
+            const best =
+                Math.max(
+                    correct,
+                    localStorage.getItem("bestScore") || 0
+                );
+
+            localStorage.setItem(
+                "bestScore",
+                best
+            );
+
+            document.getElementById("finalTotal")
+                .textContent =
+                amendments.length;
+
+            document.getElementById("finalCorrect")
+                .textContent =
+                correct;
+
+            document.getElementById("finalWrong")
+                .textContent =
+                wrong;
+
+            document.getElementById("finalAccuracy")
+                .textContent =
+                accuracy;
+
+            document.getElementById("bestScore")
+                .textContent =
+                best;
+
+            document.getElementById("endScreen")
+                .style.display = "block";
+
+            document.getElementById("description")
+                .textContent =
+                "Quiz Finished 🎉";
+
+            document.getElementById("result")
+                .textContent = "";
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                submitAnswer();
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

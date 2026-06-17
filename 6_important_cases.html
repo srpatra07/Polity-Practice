@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supreme Court Practice - Interactive Bench</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bubble-bg: #ffffff;
+            --gold: #d4af37;
+            --dark-overlay: rgba(0, 0, 0, 0.8);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+        }
+
+        .court-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            /* PASTE YOUR IMAGE LINK HERE */
+            background: url('assets/courtroom.png') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+        }
+
+        .gavel-overlay {
+            position: absolute;
+            top: 39%;
+            left: 75%;
+            transform-origin: bottom left;
+            transform: rotate(-95deg);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .gavel-hammer {
+            font-size: 90px;
+            color: #be6b37;
+            text-shadow: 2px 2px 0px #d4af37;
+            filter: drop-shadow(5px 5px 15px rgba(0, 0, 0, 0.7));
+        }
+
+        .strike-animation {
+            animation: gavelStrike 0.4s ease-out;
+        }
+
+        @keyframes gavelStrike {
+            0% {
+                transform: rotate(-95deg);
+            }
+
+            50% {
+                transform: rotate(-140deg);
+            }
+
+            100% {
+                transform: rotate(-95deg);
+            }
+        }
+
+        .shake {
+            animation: bassShake 0.2s ease-in-out;
+        }
+
+        @keyframes bassShake {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(6px, 6px);
+            }
+
+            50% {
+                transform: translate(-6px, -6px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .judgment-bubble {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            background: var(--bubble-bg);
+            border: 4px solid #333;
+            border-radius: 20px;
+            padding: 20px;
+            width: 300px;
+            min-height: 100px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .bubble-dot {
+            position: absolute;
+            background: white;
+            border: 3px solid #333;
+            border-radius: 50%;
+        }
+
+        .dot1 {
+            width: 30px;
+            height: 30px;
+            bottom: -40px;
+            left: 60px;
+        }
+
+        .dot2 {
+            width: 15px;
+            height: 15px;
+            bottom: -60px;
+            left: 80px;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bottom-ui {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 30;
+        }
+
+        .mode-toggle {
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+
+        .input-group {
+            background: var(--dark-overlay);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+            backdrop-filter: blur(8px);
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        input {
+            padding: 15px;
+            background: #000;
+            border: 1px solid #444;
+            color: var(--gold);
+            font-size: 1.2rem;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        #userInput {
+            width: 400px;
+        }
+
+        #benchInput {
+            width: 80px;
+            text-align: center;
+        }
+
+        .btn-order {
+            padding: 15px 35px;
+            background: var(--gold);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .correct {
+            border-color: #2ecc71 !important;
+            background: rgba(46, 204, 113, 0.2) !important;
+        }
+
+        .wrong {
+            border-color: #e74c3c !important;
+        }
+
+        .screen-dimmer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .score-box {
+            color: #fff;
+            margin-top: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        /* Result Modal */
+        #resultModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #111;
+            border: 3px solid var(--gold);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            color: white;
+            box-shadow: 0 0 100px rgba(0, 0, 0, 1);
+            min-width: 300px;
+        }
+
+        #resultModal h2 {
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .btn-restart {
+            background: var(--gold);
+            border: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body id="body">
+
+    <div class="screen-dimmer"></div>
+
+    <div class="court-container" id="container">
+        <div class="gavel-overlay" id="gavel">
+            <i class="fas fa-gavel gavel-hammer"></i>
+        </div>
+
+        <div class="judgment-bubble" id="bubble">
+            <span id="judgmentText">Pass Order to begin proceedings...</span>
+            <div class="bubble-dot dot1"></div>
+            <div class="bubble-dot dot2"></div>
+        </div>
+
+        <div class="bottom-ui">
+            <button class="mode-toggle" id="modeBtn" onclick="toggleMode()">Mode: Chronological</button>
+            <div class="input-group">
+                <input type="text" id="userInput" placeholder="Case vs UOI (Year)" autocomplete="off">
+                <input type="number" id="benchInput" placeholder="Bench" autocomplete="off">
+                <button class="btn-order" onclick="processOrderClick()">Give Order</button>
+            </div>
+            <div class="score-box">
+                Justice Served: <span id="score">0</span> Cases
+            </div>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <h2>Court Adjourned</h2>
+        <div id="statsSummary"></div>
+        <button class="btn-restart" onclick="location.reload()">Start New Session</button>
+    </div>
+
+    <script>
+        const caseDatabase = [
+            {
+                case: "A.K. Gopalan vs State of Madras",
+                year: 1950,
+                bench: 6,
+                judgement: "Held that detention is valid if it follows <span style='color: red;'>procedure established by law</span>; adopted a <span style='color: red;'>narrow interpretation of Article 21</span>.",
+            },
+            {
+                case: "State of Madras vs Champakam Dorairajan",
+                year: 1951,
+                bench: 7,
+                judgement: "<span style='color:red';>Fundamental Rights prevail over DPSP</span>. The Supreme Court struck down caste-based reservations in educational institutions under the Communal G.O. as <span style='color:red';>violative of Articles 15(1) and 29(2)</span> leads to 1st CA, 1951",
+            },
+            {
+                case: "Shankari Prasad vs Union of India",
+                year: 1951,
+                bench: 5,
+                judgement: "Parliament can amend Fundamental Rights under Article 368.",
+            },
+            {
+                case: "In Re: The Kerala Education Bill",
+                year: 1958,
+                bench: 7,
+                judgement: "The Supreme Court adopted the <span style='color: red;'>Doctrine of Harmonious Construction</span> and held that the <span style='color: red;'>Directive Principles of State Policy (DPSPs) cannot override Fundamental Rights</span>. Instead, both should be interpreted harmoniously so that effect can be given to each as far as possible.",
+            },
+            {
+                case: "In Re: Berubari Union",
+                year: 1960,
+                bench: 8,
+                judgement: "Transfer of Indian territory to another country requires a <span style='color:red';>constitutional amendment</span>.",
+            },
+            {
+                case: "I.C. Golaknath vs State of Punjab",
+                year: 1967,
+                bench: 11,
+                judgement: "Parliament <span style='color:red';>cannot amend Fundamental Rights</span> under Article 368.",
+            },
+            {
+                case: "Kesavananda Bharati vs State of Kerala",
+                year: 1973,
+                bench: 13,
+                judgement: "Introduced the <span style='color:red';>Basic Structure Doctrine</span>; Parliament cannot alter the Constitution's basic structure.",
+            },
+            {
+                case: "Indira Gandhi vs Raj Narain",
+                year: 1975,
+                bench: 5,
+                judgement: "Applied Basic Structure Doctrine i.e. <span style='color:orange';>Separation of Power</span>, <span style='color:yellow';>Free and Fair election</span> and <span style='color:blue';>Judicial Review</span> and struck down Article 329A(4) i.e. Elecion of PM and Speaker out of Judicial review",
+            },
+            {
+                case: "Rev. Stainislaus vs State of Madhya Pradesh",
+                year: 1977,
+                bench: 5,
+                judgement: "The Supreme Court held that the <span style='color: red;'>right to propagate religion</span> under <span style='color: red;'>Article 25</span> includes the right to spread and explain one's religious beliefs, but <span style='color: red;'>does not include the right to convert another person</span>.",
+
+            },
+            {
+                case: "Maneka Gandhi vs Union of India",
+                year: 1978,
+                bench: 7,
+                judgement: "Article 21 include the doctrine of <span style='color: red;'>Due Process of Law</span> by reading the presence of Principles of Natural Justice and linked <span style='color: red;'>Articles 14, 19 and 21</span> together as <span style='color: red;'>Golden Triange</span>.",
+            },
+            {
+                case: "Minerva Mills Ltd. vs Union of India",
+                year: 1980,
+                bench: 5,
+                judgement: "Parliament's amending power is limited by the Basic Structure Doctrine. <br> The changes introduced in Article 31C throught 42nd CA, 1976 were unconstitutional as it disturb the <span style='color:red';>Balance between FR and DPSP</span> which is itslef part of <span style='color: red';>Basic structre</span>.",
+            },
+            {
+                case: "Waman Rao vs Union of India",
+                year: 1981,
+                bench: 5,
+                judgement: "Ninth Schedule laws added <span style='color: red;'>after 24 April 1973</span> are subject to judicial review.",
+            },
+            {
+                case: "Mohd. Ahmed Khan vs Shah Bano Begum",
+                year: 1985,
+                bench: 5,
+                judgement: "A divorced Muslim woman is entitled to maintenance under CrPC.",
+            },
+            {
+                case: "Olga Tellis vs Bombay Municipal Corporation",
+                year: 1985,
+                bench: 5,
+                judgement: "Right to livelihood is an integral part of the Right to Life under Article 21.",
+            },
+            {
+                case: "Indra Sawhney vs Union of India",
+                year: 1992,
+                bench: 9,
+                judgement: "Upheld OBC reservation of 27%, excluded creamy layer and capped reservation at 50%.",
+            },
+            {
+                case: "S.R. Bommai vs Union of India",
+                year: 1994,
+                bench: 9,
+                judgement: "Restricted misuse of Article 356 and strengthened federalism.",
+            },
+            {
+                case: "Sarla Mudgal vs Union of India",
+                year: 1995,
+                bench: 2,
+                judgement: "Religious conversion cannot be used to evade bigamy laws.",
+            },
+            {
+                case: "Vishaka vs State of Rajasthan",
+                year: 1997,
+                bench: 3,
+                judgement: "Laid down <span style='color: red;'>Vishaka Guidelines</span> against workplace sexual harassment.",
+            },
+            {
+                case: "D.K. Basu vs State of West Bengal",
+                year: 1997,
+                bench: 2,
+                judgement: "Issued safeguards against custodial torture and illegal arrests.",
+            },
+            {
+                case: "I.R. Coelho vs State of Tamil Nadu",
+                year: 2007,
+                bench: 9,
+                judgement: "Ninth Schedule laws added after 24 April 1973 can be reviewed if they violate the Basic Structure.",
+            },
+            {
+                case: "Aruna Shanbaug vs Union of India",
+                year: 2011,
+                bench: 2,
+                judgement: "Recognized passive euthanasia under strict judicial safeguards.",
+            },
+            {
+                case: "Lily Thomas vs Union of India",
+                year: 2013,
+                bench: 2,
+                judgement: "Convicted MPs and MLAs lose membership immediately upon conviction.",
+            },
+            {
+                case: "People's Union for Civil Liberties (PUCL) vs Union of India",
+                year: 2013,
+                bench: 3,
+                judgement: "SC directed Election Commission to introduce <span style='color: red;'>None of the Above (NOTA)</span> option in EVMs and ballot papers. The Court held that the <span style='color: red;'>right to secrecy</span> and the <span style='color: red;'>right to express disapproval of all candidates</span> are part of the <span style='color: red;'>Freedom of Speech and Expression under Article 19(1)(a)</span>. ",
+            },
+            {
+                case: "National Legal Services Authority vs Union of India",
+                year: 2014,
+                bench: 2,
+                judgement: "Recognized transgender persons as the third gender and granted constitutional protections.",
+            },
+            {
+                case: "Shreya Singhal vs Union of India",
+                year: 2015,
+                bench: 2,
+                judgement: "The Supreme Court struck down <span style='color: red;'>Section 66A of the Information Technology Act, 2000</span> as unconstitutional, holding that it violated the <span style='color: red;'>Freedom of Speech and Expression under Article 19(1)(a)</span>.",
+            },
+            {
+                case: "Justice K.S. Puttaswamy vs Union of India",
+                year: 2017,
+                bench: 9,
+                judgement: "Declared Right to Privacy as a Fundamental Right.",
+            },
+            {
+                case: "Shayara Bano vs Union of India",
+                year: 2017,
+                bench: 5,
+                judgement: "Declared instant Triple Talaq unconstitutional.",
+            },
+            {
+                case: "Navtej Singh Johar vs Union of India",
+                year: 2018,
+                bench: 5,
+                judgement: "Decriminalized consensual homosexual relations by reading down Section 377 IPC.",
+            },
+            {
+                case: "Anuradha Bhasin vs Union of India",
+                year: 2020,
+                bench: 3,
+                judgement: "Internet access is integral to freedom of speech and trade; restrictions must be proportionate.",
+            },
+            {
+                case: "Anoop Baranwal vs Union of India",
+                year: 2023,
+                bench: 5,
+                judgement: "Directed appointment of Election Commissioners through a committee consisting of PM, LoP and CJI until Parliament enacts a law.",
+            },
+            {
+                case: "Association for Democratic Reforms vs Union of India",
+                year: 2024,
+                bench: 5,
+                judgement: "Struck down the Electoral Bonds Scheme as unconstitutional.",
+            }
+        ];
+
+
+        let currentCase = null;
+        let score = 0;
+        let mistakes = 0;
+        let currentIndex = 0;
+        let isRandomMode = false;
+        let chances = 2;
+        let usedIndexes = [];
+        let isGameOver = false;
+
+        function toggleMode() {
+            // Confirm and reset state manually instead of location.reload()
+            if (confirm("Switching modes will restart your progress. Continue?")) {
+                isRandomMode = !isRandomMode;
+                const btn = document.getElementById('modeBtn');
+                btn.innerText = isRandomMode ? "Mode: Random" : "Mode: Chronological";
+
+                // Reset Game Variables
+                currentIndex = 0;
+                score = 0;
+                mistakes = 0;
+                usedIndexes = [];
+                isGameOver = false;
+                currentCase = null;
+
+                document.getElementById('score').innerText = "0";
+                document.getElementById('bubble').style.display = 'none';
+                document.getElementById('resultModal').style.display = 'none';
+
+                alert("Mode changed! Click 'Give Order' to start.");
+            }
+        }
+
+        function processOrderClick() {
+            if (isGameOver) return;
+            // Only allow Give Order if no case is currently active or if we just finished one
+            if (!currentCase) {
+                giveOrder();
+            }
+        }
+
+        function giveOrder() {
+            if (isGameOver) return;
+
+            // Stop logic for Chronological
+            if (!isRandomMode && currentIndex >= caseDatabase.length) {
+                endGame();
+                return;
+            }
+
+            // Stop logic for Random
+            if (isRandomMode && usedIndexes.length >= caseDatabase.length) {
+                endGame();
+                return;
+            }
+
+            const gavel = document.getElementById('gavel');
+            const container = document.getElementById('container');
+            const bubble = document.getElementById('bubble');
+            const input = document.getElementById('userInput');
+            const bInput = document.getElementById('benchInput');
+
+            gavel.classList.remove('strike-animation');
+            container.classList.remove('shake');
+            input.classList.remove('correct', 'wrong');
+            bInput.classList.remove('correct', 'wrong');
+
+            void gavel.offsetWidth;
+            gavel.classList.add('strike-animation');
+
+            setTimeout(() => {
+                container.classList.add('shake');
+
+                if (isRandomMode) {
+                    let randomIndex;
+                    do {
+                        randomIndex = Math.floor(Math.random() * caseDatabase.length);
+                    } while (usedIndexes.includes(randomIndex));
+                    usedIndexes.push(randomIndex);
+                    currentCase = caseDatabase[randomIndex];
+                } else {
+                    currentCase = caseDatabase[currentIndex];
+                    currentIndex++;
+                }
+
+                chances = 2;
+                document.getElementById('judgmentText').innerHTML = currentCase.judgement;
+                bubble.style.display = 'flex';
+                input.value = "";
+                bInput.value = "";
+                input.focus();
+            }, 200);
+        }
+
+        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAnswer(); });
+        document.getElementById('benchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAnswer(); });
+
+        function checkAnswer() {
+            if (!currentCase || isGameOver) return;
+
+            const input = document.getElementById('userInput');
+            const bInput = document.getElementById('benchInput');
+
+            const userVal = input.value.toLowerCase().trim();
+            const benchVal = bInput.value.trim();
+
+            const officialYear = currentCase.year.toString();
+            // Get first significant word of the case for matching
+            const casePart = currentCase.case.split(' ')[0].toLowerCase();
+            const officialBench = currentCase.bench.toString();
+
+            const nameYearCorrect = userVal.includes(officialYear) && userVal.includes(casePart);
+            const benchCorrect = (benchVal === officialBench);
+
+            if (nameYearCorrect && benchCorrect) {
+                input.classList.add('correct');
+                bInput.classList.add('correct');
+                score++;
+                document.getElementById('score').innerText = score;
+
+                setTimeout(() => {
+                    document.getElementById('bubble').style.display = 'none';
+                    currentCase = null; // Clear to allow next Give Order
+                    giveOrder();
+                }, 1200);
+            } else {
+                chances--;
+                if (chances > 0) {
+                    alert("Incorrect! 1 chance remaining.");
+                    input.classList.add('wrong');
+                    bInput.classList.add('wrong');
+                    shakeInputs([input, bInput]);
+                } else {
+                    mistakes++;
+                    input.classList.add('wrong');
+                    bInput.classList.add('wrong');
+                    shakeInputs([input, bInput]);
+
+                    // Display correct answer in bubble
+                    document.getElementById('judgmentText').innerHTML =
+                        `<span style="color:blue; font-weight:bold;">VERDICT REVEALED</span><br><br>
+                        <span style="color:green; font-weight:bold;">${currentCase.case} (${currentCase.year})</span><br>
+                        Bench Strength: <span style="color:green;">${currentCase.bench}</span>`;
+
+                    setTimeout(() => {
+                        document.getElementById('bubble').style.display = 'none';
+                        currentCase = null; // Clear to allow next Give Order
+                        giveOrder();
+                    }, 4000);
+                }
+            }
+        }
+
+        function shakeInputs(elements) {
+            elements.forEach(el => {
+                el.animate([
+                    { transform: 'translateX(0px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(0px)' }
+                ], { duration: 200 });
+            });
+        }
+
+        function endGame() {
+            isGameOver = true;
+            document.getElementById('bubble').style.display = 'none';
+            const modal = document.getElementById('resultModal');
+            const summary = document.getElementById('statsSummary');
+
+            summary.innerHTML = `
+                <p style="margin: 10px 0;">Mode: ${isRandomMode ? 'Random' : 'Chronological'}</p>
+                <p style="margin: 10px 0;">Total Cases: ${caseDatabase.length}</p>
+                <p style="margin: 10px 0; color: #2ecc71;">Justice Served (Correct): ${score}</p>
+                <p style="margin: 10px 0; color: #e74c3c;">Judicial Errors (Mistakes): ${mistakes}</p>
+                <h3 style="color: var(--gold); margin-top: 15px;">Final Score: ${((score / caseDatabase.length) * 100).toFixed(1)}%</h3>
+            `;
+            modal.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
