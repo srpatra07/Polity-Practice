@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution Supreme: The Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --accent: #ff5722;
+            --text: #ffffff;
+            --panel: #262626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            height: 45px;
+            background: var(--panel);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 2px solid var(--accent);
+            z-index: 10;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #000;
+            border-radius: 20px;
+            padding: 3px;
+        }
+
+        .mode-btn {
+            padding: 2px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.3s;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .game-area {
+            display: flex;
+            flex: 1;
+            padding: 10px 20px;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .case-side {
+            flex: 1.4;
+            perspective: 1000px;
+            height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .case-card {
+            background: var(--card-bg);
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            padding: 30px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            animation: cardIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes cardIn {
+            from { transform: rotateY(-15deg) translateX(-50px); opacity: 0; }
+            to { transform: rotateY(0) translateX(0); opacity: 1; }
+        }
+
+        .case-label {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-family: 'Cinzel', serif;
+            color: var(--accent);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .case-text {
+            font-size: 1.4rem;
+            line-height: 1.4;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .desk-side {
+            flex: 0.9;
+            background: var(--panel);
+            height: 85vh;
+            border-radius: 25px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .stats-box {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .stat-item { text-align: center; font-size: 0.7rem; }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
+
+        input {
+            background: #000;
+            border: 2px solid #334155;
+            padding: 12px;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        input:focus { outline: none; border-color: var(--accent); }
+
+        #amendment-container {
+            transition: 0.4s;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        #amendment-container.active { opacity: 1; pointer-events: all; }
+
+        .btn-check {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 5px;
+        }
+
+        .btn-check:hover { background: #fcd34d; transform: translateY(-2px); }
+
+        #feedback-area {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            min-height: 24px;
+        }
+
+        .judge-img { font-size: 3rem; text-align: center; }
+
+        #summary-modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--panel);
+            padding: 30px;
+            border-radius: 25px;
+            border: 2px solid var(--accent);
+            width: 380px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 87, 34, 0.3);
+        }
+
+        .modal-content h2 { font-family: 'Cinzel', serif; color: var(--accent); margin-bottom: 20px; }
+        .res-line { display: flex; justify-content: space-between; margin: 12px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .btn-restart { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <div style="font-family: 'Cinzel'; font-size: 1rem;">⚖️ CONSTITUTION <span
+                style="color:var(--accent)">SUPREME</span></div>
+        <div class="mode-toggle">
+            <div id="mode-chrono" class="mode-btn active" onclick="setMode('chrono')">CHRONO</div>
+            <div id="mode-random" class="mode-btn" onclick="setMode('random')">RANDOM</div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="case-side">
+            <div class="case-card" id="card">
+                <span class="case-label">EXHIBIT A: PROVISION</span>
+                <p class="case-text" id="statement-text">Loading...</p>
+            </div>
+        </div>
+
+        <div class="desk-side">
+            <div class="judge-img" id="judge-emoji">👨‍⚖️</div>
+            <div class="stats-box">
+                <div class="stat-item"><span class="stat-val" id="score">0</span>POINTS</div>
+                <div class="stat-item"><span class="stat-val" id="streak">0</span>STREAK</div>
+            </div>
+            <div class="input-box">
+                <div>
+                    <label>Article Number</label>
+                    <input type="text" id="art-input" placeholder="e.g., 15(6)" autocomplete="off">
+                </div>
+                <div id="amendment-container">
+                    <label>Amendment (Num, Year)</label>
+                    <input type="text" id="amnd-input" placeholder="e.g., 103, 2019" autocomplete="off">
+                </div>
+                <button class="btn-check" onclick="processJudgment()">PASS JUDGMENT ⚖️</button>
+                <button style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.8rem; margin-top:5px;"
+                    onclick="skipQuestion()">Skip Case 🏃‍♂️</button>
+            </div>
+            <div id="feedback-area"></div>
+        </div>
+    </div>
+
+    <div id="summary-modal">
+        <div class="modal-content">
+            <h2>FINAL VERDICT</h2>
+            <div class="res-line"><span>Mode:</span> <span id="res-mode">-</span></div>
+            <div class="res-line"><span>Correct:</span> <span id="res-correct" style="color:#22c55e">-</span></div>
+            <div class="res-line"><span>Wrong:</span> <span id="res-wrong" style="color:#ef4444">-</span></div>
+            <div class="res-line"><span>Final Score:</span> <span id="res-score">-</span></div>
+            <div class="res-line" style="margin-top:15px; border-top: 2px solid var(--accent); padding-top:10px;">
+                <span>Highest Score:</span> <span id="res-high" style="color:var(--accent)">-</span>
+            </div>
+            <button class="btn-restart" onclick="restartGame()">RESTART SESSION</button>
+        </div>
+    </div>
+
+    <script>
+        const articles = [
+            { id: "13(1)", text: "All the laws enforced in India immediately before commencement of the constitution shall be unconstitutional and void if they violate one or more provisions of Part 3 to the extent of violation.", amend: "" },
+            { id: "13(2)", text: "After the commencement of Constitution, State shall not make any law that takes away or abridges one or more fundamental rights; if any such law is passed, then it shall be held unconstitutional and void to the extent of violation.", amend: "" },
+            { id: "13(3)", text: "Definition of Law.", amend: "" },
+            { id: "14", text: "The State shall not deny to any person equality before the law or the equal protection of the laws within the territory of India.", amend: "" },
+            { id: "15(1)", text: "State shall not discriminate against citizens only on ground of religion, race, caste, sex, place of birth or any of them.", amend: "" },
+            { id: "15(2)", text: "It prohibits the state and individuals from discriminating against citizens only on the ground of religion, race, caste, sex, place of birth or any of them in having access to public places like parks, hotels, restaurants, hospitals, roads, tanks etc.", amend: "" },
+            { id: "15(3)", text: "It enables the state to make special provisions for the welfare of women and children.", amend: "" },
+            { id: "15(4)", text: "It empowers the state to make any special provisions for the advancement of socially and educationally backward classes of citizens or SCs/STs.", amend: "1, 1951" },
+            { id: "15(5)", text: "It empowers the state to make special provisions for the admission of backward classes of citizens in educational institutions whether public or private, aided or unaided except minority educational institutions.", amend: "93, 2005" },
+            { id: "15(6)", text: "It enables the state to provide for reservation up to 10% for economically weaker sections in educational institutions whether public or private, aided or unaided except minority educational institutions.", amend: "103, 2019" },
+            { id: "16(1)", text: "It provides for equality of opportunities for all citizens in case of public employment.", amend: "" },
+            { id: "16(2)", text: "It prohibits the state from discriminating against citizens only on grounds of religion, race, caste, sex, place of birth, residence, descent or any of them in having access to public employment.", amend: "" },
+            { id: "16(3)", text: "Parliament is empowered to provide by law, residence as a ground or qualification in certain categories of public employment under the state.", amend: "" },
+            { id: "16(4)", text: "It empowers the state to make special provisions in the favor of backward classes of citizens in reserving the posts of the nature of public employment if the backward class is not adequately represented in public services.", amend: "" },
+            { id: "16(4A)", text: "It provides reservation in Promotion for SC and STs.", amend: "77, 1995" },
+            { id: "16(5)", text: "It empowers the state to prescribe religion as a ground or qualification for recruitment of candidates in certain categories of public employment.", amend: "" },
+            { id: "16(6)", text: "It enables the state to provide for reservation in public employment for economically weaker section up to 10%.", amend: "103, 2019" },
+            { id: "17", text: "It abolishes untouchability in all the forms. (Untouchability Offences Act 1955 and Civil Rights Protection Act 1976)", amend: "" },
+            { id: "18(1)", text: "Prohibits the state from conferring any title except in the form of military or academic achievement.", amend: "" },
+            { id: "18(2)", text: "Prohibits the citizens of India from accepting any title from a foreign state.", amend: "" },
+            { id: "18(3)", text: "A foreigner holding office of profit or trust under the Indian state can't accept a title from a foreign state without the permission of the Indian President.", amend: "" },
+            { id: "18(4)", text: "No Person holding office of profit under Indian state shall accept any present/gift, emoluments or office under any foreign state without the permission of the president.", amend: "" },
+            { id: "19(1)(a)", text: "Guarantees to all citizens a fundamental right to freedom of speech and expression.", amend: "" },
+            { id: "19(2)", text: "Freedom of speech and expression are restricted on the grounds of Security and Sovereignty of India, friendly relations with other countries, public order, morality, decency, defamation, contempt of court etc.", amend: "" },
+            { id: "19(1)(b)", text: "Guarantees right to assemble to all the citizens including right to hold meetings and carrying out processions, but in a peaceful manner.", amend: "" },
+            { id: "19(1)(c)", text: "Guarantees right to form association, union or co-operative society.", amend: "" },
+            { id: "19(1)(d)", text: "Guarantees right to move freely throughout the territory of India; no part of India shall be made inaccessible for Indian citizens. (Can be restricted for Security, Public order, or ST interests).", amend: "" },
+            { id: "19(1)(e)", text: "Guarantees freedom of residence and settlement to the citizens of India in any part of India provided it doesn't affect general public or STs.", amend: "" },
+            { id: "19(1)(f)", text: "Provided for Right to Property which was removed from Part 3 and introduced in Article 300A. It's now a constitutional or legal right.", amend: "44, 1978" },
+            { id: "19(1)(g)", text: "Guarantees right to vocation/trade of one's choice. State can impose restrictions like qualifications or take over a business in public interest.", amend: "" },
+            { id: "20(1)", text: "Prohibits ex post facto criminal legislation. No man shall be convicted for an act which was not a crime at the time of its commissioning, nor subjected to a greater penalty.", amend: "" },
+            { id: "20(2)", text: "Prohibits double jeopardy: No Person shall be prosecuted and punished for the same offence in a court of law more than once.", amend: "" },
+            { id: "20(3)", text: "Prohibits self-incrimination: No person can be forced to be a witness against himself.", amend: "" },
+            { id: "21", text: "Guarantees right to life and personal liberty. No Person shall be deprived of his life or liberty except according to procedure established by law (PEBL/DPL).", amend: "" },
+            { id: "21A", text: "State shall provide free and compulsory education to any children (Indian and Foreigner) age 6 to 14 years as provided by law.", amend: "86, 2002" },
+            { id: "22(1)", text: "No person who is arrested shall be detained in custody without being informed in writing of the ground of his arrest.", amend: "" },
+            { id: "22(2)", text: "The arrested person shall be produced before the nearest judicial magistrate within 24 hours of arrest excluding journey time.", amend: "" },
+            { id: "22(3)", text: "No person shall be detained in custody beyond the period which was authorized by the magistrate.", amend: "" },
+            { id: "23(1)", text: "Prohibits traffic in human beings, begar or any other form of forced labour.", amend: "" },
+            { id: "23(2)", text: "Empowers state to force the individual to provide service with or without payment provided it's in public interest.", amend: "" },
+            { id: "24", text: "Prohibits employment of Children below age 14 years in hazardous employment.", amend: "" },
+            { id: "25", text: "Guarantees freedom of conscience and the right to freely profess, practice and propagate a religion of one's choice.", amend: "" },
+            { id: "26", text: "Freedom of religious denominations to manage religious affairs, own property, and maintain religious/charitable institutions.", amend: "" },
+            { id: "27", text: "Prohibits the state from spending tax collections for the promotion and maintenance of any particular religious denomination.", amend: "" },
+            { id: "28(1)", text: "In Educational Institutions completely owned and administered by State, no religious instructions whatsoever can be imparted.", amend: "" },
+            { id: "28(2)", text: "In Private Educational Institutions (aided/unaided), religious instructions can be imparted but students can't be forced to attend.", amend: "" },
+            { id: "28(3)", text: "In Educational Institutions administered by State but established through religious endowment, religious instructions can be made compulsory.", amend: "" },
+            { id: "29(1)", text: "Any section of citizens residing in India having a distinct language, script or culture have a right to conserve the same.", amend: "" },
+            { id: "29(2)", text: "No citizen shall be denied admission in educational institutions maintained by state or receiving state aid only on ground of religion, race, caste, or language.", amend: "" },
+            { id: "30(1)", text: "All minorities whether based on religion or language have a right to establish and administer educational institutions of their choice.", amend: "" },
+            { id: "32(1)", text: "Confers the power on Supreme Court to issue appropriate orders, directions or writs to enforce fundamental rights.", amend: "" },
+            { id: "32(2)", text: "Writ jurisdiction of Supreme Court: Power to issue writs.", amend: "" },
+            { id: "32(3)", text: "Parliament has the power to confer writ jurisdiction by means of law on any other body.", amend: "" }
+        ];
+
+        let mode = 'chrono';
+        let currentIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let currentArt = null;
+        let totalCorrect = 0;
+        let totalWrong = 0;
+        let sessionCount = 0;
+        let gameDeck = []; // The list of articles to play through
+
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('mode-chrono').classList.toggle('active', m === 'chrono');
+            document.getElementById('mode-random').classList.toggle('active', m === 'random');
+            restartGame();
+        }
+
+        function restartGame() {
+            currentIndex = 0;
+            score = 0;
+            streak = 0;
+            totalCorrect = 0;
+            totalWrong = 0;
+            sessionCount = 0;
+            
+            // Prepare the deck based on mode
+            if (mode === 'random') {
+                gameDeck = shuffleArray(articles);
+            } else {
+                gameDeck = [...articles];
+            }
+
+            document.getElementById('score').innerText = "0";
+            document.getElementById('streak').innerText = "0";
+            document.getElementById('summary-modal').style.display = 'none';
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (sessionCount >= articles.length) {
+                showSummary();
+                return;
+            }
+
+            currentArt = gameDeck[currentIndex];
+            
+            // UI Update
+            document.getElementById('statement-text').innerText = currentArt.text;
+            document.getElementById('art-input').value = "";
+            document.getElementById('amnd-input').value = "";
+            document.getElementById('feedback-area').innerText = "";
+            document.getElementById('judge-emoji').innerText = "👨‍⚖️";
+
+            const amndBox = document.getElementById('amendment-container');
+            if (currentArt.amend !== "") {
+                amndBox.classList.add('active');
+            } else {
+                amndBox.classList.remove('active');
+            }
+            document.getElementById('art-input').focus();
+        }
+
+        function skipQuestion() {
+            sessionCount++;
+            currentIndex++;
+            nextQuestion();
+        }
+
+        function processJudgment() {
+            const userArt = document.getElementById('art-input').value.trim().toLowerCase();
+            const userAmnd = document.getElementById('amnd-input').value.trim().toLowerCase();
+            const feedback = document.getElementById('feedback-area');
+            const judge = document.getElementById('judge-emoji');
+
+            const isArtCorrect = userArt === currentArt.id.toLowerCase();
+            let isAmndCorrect = (currentArt.amend === "") || (userAmnd === currentArt.amend.toLowerCase());
+
+            if (isArtCorrect && isAmndCorrect) {
+                score += 10;
+                streak++;
+                totalCorrect++;
+                judge.innerText = "👨‍🎓";
+                feedback.innerHTML = "<span style='color:#22c55e'>Correct! ✅</span>";
+                confetti({ particleCount: 100, spread: 50, origin: { y: 0.7 } });
+                setTimeout(() => {
+                    sessionCount++;
+                    currentIndex++;
+                    nextQuestion();
+                }, 1500);
+            } else {
+                streak = 0;
+                totalWrong++;
+                judge.innerText = "👨‍⚖️🚫";
+                feedback.innerHTML = `<span style='color:#ef4444; font-size:0.8rem;'>Error! Art: ${currentArt.id} ${currentArt.amend ? '[' + currentArt.amend + ']' : ''}</span>`;
+                setTimeout(() => {
+                    sessionCount++;
+                    currentIndex++;
+                    nextQuestion();
+                }, 2500);
+            }
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('streak').innerText = streak;
+        }
+
+        function showSummary() {
+            const highScore = localStorage.getItem('constitutionHigh') || 0;
+            if (score > highScore) localStorage.setItem('constitutionHigh', score);
+
+            document.getElementById('res-mode').innerText = mode.toUpperCase();
+            document.getElementById('res-correct').innerText = totalCorrect;
+            document.getElementById('res-wrong').innerText = totalWrong;
+            document.getElementById('res-score').innerText = score;
+            document.getElementById('res-high').innerText = Math.max(score, highScore);
+            document.getElementById('summary-modal').style.display = 'flex';
+        }
+
+        document.addEventListener('keypress', (e) => { if (e.key === 'Enter') processJudgment(); });
+        
+        // Initial game start
+        restartGame();
+    </script>
+</body>
+</html>
