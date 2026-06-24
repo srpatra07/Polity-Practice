@@ -12,9 +12,11 @@
         :root {
             --bg: #121212;
             --card-bg: #1e1e1e;
-            --accent: #ff5722;
+            --accent: #8a0c34;
             --text: #ffffff;
             --panel: #262626;
+            --success: #22c55e;
+            --error: #ef4444;
         }
 
         * {
@@ -133,15 +135,20 @@
         }
 
         .stats-box {
-            display: flex;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             padding: 10px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
         }
 
-        .stat-item { text-align: center; font-size: 0.7rem; }
-        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .stat-item { text-align: center; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
+        .stat-val { display: block; font-size: 1.3rem; font-weight: bold; }
+        #val-correct { color: var(--success); }
+        #val-wrong { color: var(--error); }
+        #val-done { color: #fff; }
+        #val-remain { color: var(--accent); }
 
         .input-box {
             display: flex;
@@ -248,8 +255,10 @@
         <div class="desk-side">
             <div class="judge-img" id="judge-emoji">👨‍⚖️</div>
             <div class="stats-box">
-                <div class="stat-item"><span class="stat-val" id="score">0</span>POINTS</div>
-                <div class="stat-item"><span class="stat-val" id="streak">0</span>STREAK</div>
+                <div class="stat-item">Correct<span class="stat-val" id="val-correct">0</span></div>
+                <div class="stat-item">Wrong<span class="stat-val" id="val-wrong">0</span></div>
+                <div class="stat-item">Done<span class="stat-val" id="val-done">0</span></div>
+                <div class="stat-item">Remaining<span class="stat-val" id="val-remain">0</span></div>
             </div>
             <div class="input-box">
                 <div>
@@ -272,12 +281,8 @@
         <div class="modal-content">
             <h2>FINAL VERDICT</h2>
             <div class="res-line"><span>Mode:</span> <span id="res-mode">-</span></div>
-            <div class="res-line"><span>Correct:</span> <span id="res-correct" style="color:#22c55e">-</span></div>
-            <div class="res-line"><span>Wrong:</span> <span id="res-wrong" style="color:#ef4444">-</span></div>
-            <div class="res-line"><span>Final Score:</span> <span id="res-score">-</span></div>
-            <div class="res-line" style="margin-top:15px; border-top: 2px solid var(--accent); padding-top:10px;">
-                <span>Highest Score:</span> <span id="res-high" style="color:var(--accent)">-</span>
-            </div>
+            <div class="res-line"><span>Total Correct:</span> <span id="res-correct" style="color:var(--success)">-</span></div>
+            <div class="res-line"><span>Total Wrong:</span> <span id="res-wrong" style="color:var(--error)">-</span></div>
             <button class="btn-restart" onclick="restartGame()">RESTART SESSION</button>
         </div>
     </div>
@@ -341,13 +346,10 @@
 
         let mode = 'chrono';
         let currentIndex = 0;
-        let score = 0;
-        let streak = 0;
-        let currentArt = null;
         let totalCorrect = 0;
         let totalWrong = 0;
         let sessionCount = 0;
-        let gameDeck = []; // The list of articles to play through
+        let gameDeck = [];
 
         function shuffleArray(array) {
             let shuffled = [...array];
@@ -367,34 +369,36 @@
 
         function restartGame() {
             currentIndex = 0;
-            score = 0;
-            streak = 0;
             totalCorrect = 0;
             totalWrong = 0;
             sessionCount = 0;
             
-            // Prepare the deck based on mode
             if (mode === 'random') {
                 gameDeck = shuffleArray(articles);
             } else {
                 gameDeck = [...articles];
             }
 
-            document.getElementById('score').innerText = "0";
-            document.getElementById('streak').innerText = "0";
+            updateUIStats();
             document.getElementById('summary-modal').style.display = 'none';
             nextQuestion();
         }
 
+        function updateUIStats() {
+            document.getElementById('val-correct').innerText = totalCorrect;
+            document.getElementById('val-wrong').innerText = totalWrong;
+            document.getElementById('val-done').innerText = sessionCount;
+            document.getElementById('val-remain').innerText = gameDeck.length - sessionCount;
+        }
+
         function nextQuestion() {
-            if (sessionCount >= articles.length) {
+            if (sessionCount >= gameDeck.length) {
                 showSummary();
                 return;
             }
 
             currentArt = gameDeck[currentIndex];
             
-            // UI Update
             document.getElementById('statement-text').innerText = currentArt.text;
             document.getElementById('art-input').value = "";
             document.getElementById('amnd-input').value = "";
@@ -407,6 +411,7 @@
             } else {
                 amndBox.classList.remove('active');
             }
+            updateUIStats();
             document.getElementById('art-input').focus();
         }
 
@@ -426,48 +431,37 @@
             let isAmndCorrect = (currentArt.amend === "") || (userAmnd === currentArt.amend.toLowerCase());
 
             if (isArtCorrect && isAmndCorrect) {
-                score += 10;
-                streak++;
                 totalCorrect++;
                 judge.innerText = "👨‍🎓";
-                feedback.innerHTML = "<span style='color:#22c55e'>Correct! ✅</span>";
+                feedback.innerHTML = "<span style='color:var(--success)'>Correct! ✅</span>";
                 confetti({ particleCount: 100, spread: 50, origin: { y: 0.7 } });
                 setTimeout(() => {
                     sessionCount++;
                     currentIndex++;
                     nextQuestion();
-                }, 1500);
+                }, 1200);
             } else {
-                streak = 0;
                 totalWrong++;
                 judge.innerText = "👨‍⚖️🚫";
-                feedback.innerHTML = `<span style='color:#ef4444; font-size:0.8rem;'>Error! Art: ${currentArt.id} ${currentArt.amend ? '[' + currentArt.amend + ']' : ''}</span>`;
+                feedback.innerHTML = `<span style='color:var(--error); font-size:0.8rem;'>Error! Correct: ${currentArt.id} ${currentArt.amend ? '[' + currentArt.amend + ']' : ''}</span>`;
                 setTimeout(() => {
                     sessionCount++;
                     currentIndex++;
                     nextQuestion();
-                }, 2500);
+                }, 2000);
             }
-
-            document.getElementById('score').innerText = score;
-            document.getElementById('streak').innerText = streak;
+            updateUIStats();
         }
 
         function showSummary() {
-            const highScore = localStorage.getItem('constitutionHigh') || 0;
-            if (score > highScore) localStorage.setItem('constitutionHigh', score);
-
             document.getElementById('res-mode').innerText = mode.toUpperCase();
             document.getElementById('res-correct').innerText = totalCorrect;
             document.getElementById('res-wrong').innerText = totalWrong;
-            document.getElementById('res-score').innerText = score;
-            document.getElementById('res-high').innerText = Math.max(score, highScore);
             document.getElementById('summary-modal').style.display = 'flex';
         }
 
         document.addEventListener('keypress', (e) => { if (e.key === 'Enter') processJudgment(); });
         
-        // Initial game start
         restartGame();
     </script>
 </body>
