@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitutional Hub | Mastery</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg: #020617;
+            --card-bg: #0f172a;
+            --accent: #fbbf24;
+            --blue: #38bdf8;
+            --text: #f3f4f6;
+            --correct: #22c55e;
+            --card-w: 18vw;
+            --card-h: 22vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, transparent 80%);
+        }
+
+        header {
+            text-align: center;
+            padding: 3vh 0;
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-size: 4vh;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+        }
+
+        #main-viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2vh 2vw;
+        }
+
+        .svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: var(--blue);
+            stroke-width: 3;
+            stroke-dasharray: 10;
+            opacity: 0.2;
+            animation: flow 20s linear infinite;
+        }
+
+        @keyframes flow {
+            from {
+                stroke-dashoffset: 200;
+            }
+
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Fixed Grid Layout */
+        .acts-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 5vh 3vw;
+            width: 90%;
+            height: 70%;
+        }
+
+        .act-node {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Uniform Card Sizes */
+        .card {
+            background: var(--card-bg);
+            width: var(--card-w);
+            height: var(--card-h);
+            padding: 2vh;
+            border-radius: 16px;
+            border: 2px solid rgba(56, 189, 248, 0.1);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-10px) scale(1.05);
+            background: #1e293b;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+        }
+
+        .card h2 {
+            color: var(--accent);
+            font-size: 4vh;
+            margin-bottom: 1vh;
+        }
+
+        .card p {
+            font-size: 1.6vh;
+            color: var(--blue);
+            font-weight: 600;
+            margin-bottom: 2vh;
+            text-transform: uppercase;
+        }
+
+        .score-box {
+            font-size: 1.8vh;
+            color: #fff;
+            background: rgba(251, 191, 36, 0.2);
+            padding: 0.5vh 1.5vw;
+            border-radius: 30px;
+            border: 1px solid var(--accent);
+        }
+
+        /* LARGE MODAL STYLES */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.99);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #030712;
+            width: 95vw;
+            height: 92vh;
+            border: 1px solid #1e293b;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1);
+        }
+
+        .modal-header {
+            padding: 4vh;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 4vh;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4vh 10vw;
+            scrollbar-width: thin;
+        }
+
+        /* Large Rows for Features */
+        .row {
+            margin-bottom: 2.5vh;
+            background: #0f172a;
+            padding: 3vh;
+            border-radius: 15px;
+            border-left: 8px solid #334155;
+            transition: all 0.3s ease;
+        }
+
+        .row:focus-within {
+            border-left-color: var(--blue);
+            background: #1e293b;
+        }
+
+        .row.correct {
+            border-left-color: var(--correct);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .row input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 2.8vh;
+            /* Much larger text */
+            outline: none;
+            font-weight: 300;
+        }
+
+        .row .full-text {
+            display: none;
+            color: #fff;
+            line-height: 1.4;
+            font-size: 2.8vh;
+            /* Large visible text */
+            font-weight: 600;
+        }
+
+        .row.correct input {
+            display: none;
+        }
+
+        .row.correct .full-text {
+            display: block;
+        }
+
+        .btn-done {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 2vh 5vw;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 2vh;
+            cursor: pointer;
+            margin: 3vh;
+            align-self: center;
+            transition: transform 0.2s;
+        }
+
+        .btn-done:hover {
+            transform: scale(1.05);
+        }
+
+        .hint-bar {
+            position: fixed;
+            bottom: 2vh;
+            width: 100%;
+            text-align: center;
+            color: #475569;
+            font-size: 1.6vh;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>CONSTITUTIONAL HUB</h1>
+    </header>
+
+    <div id="main-viewport">
+        <svg class="svg-layer" id="svg-connections">
+            <path id="snake-path" class="connection-path" d=""></path>
+        </svg>
+
+        <div class="acts-grid" id="grid">
+            <!-- Cards will appear here -->
+        </div>
+    </div>
+
+    <div class="hint-bar">Click an Act to Practice. Type sentences to unlock details.</div>
+
+    <!-- Practice Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="m-title" style="color: var(--accent)"></h2>
+                <i class="fas fa-times" onclick="closeModal()"
+                    style="cursor:pointer; font-size: 4vh; color: #64748b;"></i>
+            </div>
+            <div class="modal-body" id="m-body">
+                <!-- Practice rows will appear here -->
+            </div>
+            <button class="btn-done" onclick="closeModal()">SAVE & CONTINUE</button>
+        </div>
+    </div>
+
+    <script>
+        // FILL YOUR DATA HERE
+        const actsData = [
+            {
+                year: 1773, fullName: "1773 = The regulating act of 1773",
+                features: [
+                    { t: "Centralize administration by British government" },
+                    { t: "COD placed under Court of Proprietors" },
+                    { t: "COD: 24 members, 1/4th retire annually (Permanent structure)" },
+                    { t: "Revenue by Treasury Dept; Civil/Military by Sec. of State" },
+                    { t: "Governor of Bengal to Governor General of Bengal" },
+                    { t: "4-member council sent from England to assist GG" },
+                    { t: "Council: Philip Francis, Clavering, Monson, Barwell" },
+                    { t: "Decision taken by Majority but GG has casting vote" },
+                    { t: "Council tenure: 5 years or removal by King" },
+                    { t: "Bombay and Madras presidencies made subordinate to Bengal" },
+                    { t: "Prohibited private trade, bribes, or gifts from natives" },
+                    { t: "Established Supreme Court (1774) with Elijah Impey as CJ" }
+                ]
+            },
+            {
+                year: 1781, fullName: "1781 = The amending act of 1781",
+                features: [
+                    { t: "Remedial and supplementary act to fix 1773 Act" },
+                    { t: "Also known as the Act of Settlement 1781" },
+                    { t: "Exempted the Governor General and Council from SC jurisdiction for official acts" },
+                    { t: "Exempted public servants' official actions from SC jurisdiction" },
+                    { t: "Excluded revenue matters and revenue collection from SC jurisdiction" },
+                    { t: "Mandated SC should have jurisdiction over all inhabitants of Calcutta" },
+                    { t: "Required the Court to administer personal laws of Hindus and Muslims" },
+                    { t: "Appeals from Provincial Courts were to be taken to the Governor General in Council" },
+                    { t: "Governor General in Council was empowered to frame regulations for Provincial Courts" },
+                ]
+            },
+            {
+                year: 1784, fullName: "1784 = Pitt's india act of 1784",
+                features: [
+                    { t: "Board of Control (BOC) formed in England" },
+                    { t: "BOC access to all company papers" },
+                    { t: "BOC approval mandatory for political affairs but not for Commercial affairs" },
+                    { t: "BOC Composition: Chancellor of Exchequer, Secretary of State, and 4 Privy Councillors" },
+                    { t: "Dual system of governance (BOC and COD)" },
+                    { t: "Reduced council members to three" },
+                    { t: "Commander-in-chief made mandatory in council" },
+                    { t: "GG in council given power over War, Diplomacy, and Revenue in other presidencies" },
+                    { t: "Unauthorized Wars and Treaties prohibited" },
+                    { t: "Company territories officially called British possession" }
+                ]
+            },
+            {
+                year: 1786, fullName: "1786 = The act of 1786",
+                features: [
+                    { t: "Passed for Lord Cornwallis's specific demands" },
+                    { t: "Power of both Governor General and Commander-in-chief" },
+                    { t: "GG granted overriding power over Council in special cases" }
+                ]
+            },
+            {
+                year: 1793, fullName: "1793 = The charter act of 1793",
+                features: [
+                    { t: "Renewed company charter for 20 years" },
+                    { t: "Company political role defined on behalf of the British Crown i.e. Sovereignty of Crown" },
+                    { t: "BOC altered to President and two junior members" },
+                    { t: "Royal approval mandatory for GG, Governors, and Commander-in-Chief appointments" },
+                    { t: "Company to pay 5 lac pounds to British govt annually" },
+                    { t: "Senior officials restricted from leaving India without permission" },
+                    { t: "Privilege/Country trade licenses for employees" },
+                    { t: "BOC salaries charged to Indian revenue (Home Charges)" },
+                    { t: "Separated Revenue administration from Judiciary" },
+                    { t: "Rights/Property laws translated into Indian languages" },
+                    { t: "Triggered by Napoleon's Continental system; Laissez-faire lobbying" }
+                ]
+            },
+            {
+                year: 1813, fullName: "1813 = The charter act of 1813",
+                features: [
+                    { t: "Trade monopoly abolished except Tea and China" },
+                    { t: "1 lakh rupees allotted for Indian education" },
+                    { t: "Shareholders got 10.5% dividend on the revenue of India" },
+                    { t: "Christian missionaries allowed to preach in India" },
+                    { t: "Mandated separate accounts for commercial/territorial revenue" },
+                    { t: "Regulations to be placed before British Parliament for Discussions" },
+                    { t: "India formally recognized as a British Colony" }
+                ]
+            },
+            {
+                year: 1833, fullName: "1833 = The charter act of 1833",
+                features: [
+                    { t: "Climax of administrative and legislative centralization" },
+                    { t: "EIC became purely administrative; commercial role ended" },
+                    { t: "Ended trade monopoly over Tea and trade with China" },
+                    { t: "Governor-General of Bengal became Governor-General of India" },
+                    { t: "Lord William Bentinck appointed first Governor-General of India" },
+                    { t: "Added a fourth member (Law Member) to Executive Council" },
+                    { t: "Lord Macaulay appointed first Law Member and Commission Head" },
+                    { t: "Madras and Bombay Governors deprived of legislative powers" },
+                    { t: "Established first Indian Law Commission for codification" },
+                    { t: "Created a new fourth Presidency of Agra" },
+                    { t: "Allowed European immigration and property acquisition" },
+                    { t: "Prohibited employment discrimination based on religion or birth" },
+                    { t: "Proposed open competition for civil services (Blocked by COD)" },
+                    { t: "Mandated abolition of slavery (Abolished in 1843)" },
+                    { t: "St. Helena transferred from Company to British Crown" }
+                ]
+            },
+            {
+                year: 1853, fullName: "1853 = The charter act of 1853",
+                features: [
+                    { t: "Last of the Charter Acts; first to have no fixed time limit" },
+                    { t: "Company held territories in trust until Parliament decided otherwise" },
+                    { t: "Separated Legislative and Executive functions of Governor-General" },
+                    { t: "Established 6-member Indian Legislative Council (Central Legislature)" },
+                    { t: "Introduced local representation in the Central Legislature" },
+                    { t: "Legislative Council modeled on British Parliamentary procedures" },
+                    { t: "Executive Council retained power to Veto legislative proposals" },
+                    { t: "COD members reduced from 24 to 18 (6 nominated by Crown)" },
+                    { t: "Introduced Open Competitive Exam for Civil Services (ICS)" },
+                    { t: "Macaulay Committee (1854) appointed for Civil Service reforms" },
+                    { t: "Relieved GG of Bengal charge; appointed separate Lt. Governor" },
+                    { t: "Empowered to create new provinces for better administration" }
+                ]
+            }
+        ];
+
+
+        let currentAct = null;
+
+        function normalize(str) {
+            return str.toLowerCase().replace(/\b(the|a|an)\b/gi, "").replace(/[^a-z0-9]/g, "");
+        }
+
+        function init() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            actsData.forEach((act, i) => {
+                const node = document.createElement('div');
+                node.className = 'act-node';
+                node.innerHTML = `
+                    <div class="card" id="card-${act.year}" onclick="openPractice(${act.year})">
+                        <h2>${act.year}</h2>
+                        <p>${act.fullName}</p>
+                        <div class="score-box" id="score-${act.year}">0 / ${act.features.length}</div>
+                    </div>
+                `;
+                grid.appendChild(node);
+            });
+            setTimeout(drawPath, 100);
+        }
+
+        function drawPath() {
+            const cards = actsData.map(a => document.getElementById(`card-${a.year}`).getBoundingClientRect());
+            const viewport = document.getElementById('main-viewport').getBoundingClientRect();
+            if (cards.length < 2) return;
+
+            let d = `M ${cards[0].left + cards[0].width / 2 - viewport.left} ${cards[0].top + cards[0].height / 2 - viewport.top}`;
+            for (let i = 1; i < cards.length; i++) {
+                const x = cards[i].left + cards[i].width / 2 - viewport.left;
+                const y = cards[i].top + cards[i].height / 2 - viewport.top;
+                d += ` L ${x} ${y}`;
+            }
+            document.getElementById('snake-path').setAttribute('d', d);
+        }
+
+        function openPractice(year) {
+            currentAct = actsData.find(a => a.year === year);
+            document.getElementById('m-title').innerText = `${year} : ${currentAct.fullName}`;
+            const body = document.getElementById('m-body');
+            body.innerHTML = '';
+
+            currentAct.features.forEach((feat, index) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.id = `row-${index}`;
+                row.innerHTML = `
+                    <input type="text" placeholder="Type a key feature of this act..." onkeypress="handleCheck(event, ${index})">
+                    <div class="full-text">${feat.t}</div>
+                `;
+                body.appendChild(row);
+            });
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function handleCheck(e, index) {
+            if (e.key === 'Enter') {
+                const userVal = normalize(e.target.value);
+                if (!userVal) return;
+
+                let matchIndex = -1;
+                currentAct.features.forEach((feat, i) => {
+                    const rowElem = document.getElementById(`row-${i}`);
+                    if (!rowElem.classList.contains('correct') && normalize(feat.t) === userVal) {
+                        matchIndex = i;
+                    }
+                });
+
+                if (matchIndex !== -1) {
+                    const matchedRow = document.getElementById(`row-${matchIndex}`);
+                    matchedRow.classList.add('correct');
+                    e.target.value = "";
+                    // Optional: shake effect for success
+                    matchedRow.style.transform = "scale(1.02)";
+                    setTimeout(() => matchedRow.style.transform = "scale(1)", 200);
+                } else {
+                    e.target.parentElement.style.borderColor = "#ef4444";
+                    setTimeout(() => e.target.parentElement.style.borderColor = "#334155", 600);
+                }
+            }
+        }
+
+        function closeModal() {
+            const solved = document.querySelectorAll('.row.correct').length;
+            document.getElementById(`score-${currentAct.year}`).innerText = `${solved} / ${currentAct.features.length}`;
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        window.onload = init;
+        window.onresize = drawPath;
+    </script>
+</body>
+
+</html>
