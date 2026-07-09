@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constituent Assembly Hub | Dark Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --gold: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 320px;
+            background: #020617;
+            padding: 40px 25px;
+            position: fixed;
+            height: 100vh;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            color: var(--gold);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .stats-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px; }
+        .stats-value { font-size: 1.8rem; font-weight: 700; margin: 5px 0; }
+        
+        .progress-bar {
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        #progress-fill { height: 100%; width: 0%; background: var(--primary); transition: 0.4s; }
+
+        /* --- Main Content --- */
+        main {
+            margin-left: 320px;
+            flex: 1;
+            padding: 40px 60px;
+            max-width: 1100px;
+        }
+
+        header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        header p { color: var(--text-dim); margin-bottom: 40px; }
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            gap: 30px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        .tab {
+            padding: 12px 5px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-weight: 600;
+            position: relative;
+            transition: 0.3s;
+        }
+        .tab.active { color: var(--primary); }
+        .tab.active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--primary);
+        }
+        .tab.locked { opacity: 0.4; cursor: not-allowed; }
+
+        /* --- Committee Rows --- */
+        .container { display: none; animation: slideUp 0.4s ease; }
+        .container.active { display: block; }
+
+        .row {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px 25px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 1fr 250px;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .row:hover { border-color: var(--primary); }
+
+        .row-label { font-size: 0.95rem; font-weight: 500; }
+
+        .input-box {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            outline: none;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .input-box:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .input-box.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.1); color: var(--success); font-weight: bold; }
+        .input-box.wrong { border-color: var(--error); animation: shake 0.3s; }
+
+        /* --- Unlock Banner --- */
+        #unlock-msg {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px dashed var(--gold);
+            padding: 15px;
+            border-radius: 8px;
+            color: var(--gold);
+            margin-top: 20px;
+            display: block;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* --- Summary --- */
+        .summary-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; justify-content: center; align-items: center; z-index: 200;
+        }
+        .summary-card {
+            background: var(--bg-card); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--gold);
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .btn-finish {
+            margin-top: 40px;
+            padding: 12px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2><i class="fas fa-gavel"></i> Practice Hub</h2>
+        
+        <div class="stats-card">
+            <div class="stats-label">Correct Guesses</div>
+            <div class="stats-value" id="correct-count">0</div>
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+        </div>
+
+        <div class="stats-card" style="border-color: var(--error);">
+            <div class="stats-label">Wrong Attempts</div>
+            <div class="stats-value" style="color: var(--error);" id="wrong-count">0</div>
+        </div>
+
+        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 20px;">
+            <i class="fas fa-keyboard"></i> Press <b>Enter</b> to submit your guess.
+        </p>
+
+        <button onclick="location.reload()" style="margin-top: auto; background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 10px; border-radius: 8px; cursor: pointer;">
+            Restart Quiz
+        </button>
+    </aside>
+
+    <main>
+        <header>
+            <h1>Committees of the Assembly</h1>
+            <p>Guess the Chairman for each committee to complete the constitution.</p>
+        </header>
+
+        <nav class="tabs">
+            <div class="tab active" onclick="switchTab('major', this)">Major Committees</div>
+            <div class="tab" onclick="switchTab('minor', this)">Minor Committees</div>
+            <div class="tab locked" id="sub-tab" onclick="switchTab('sub', this)">Sub-Committees (Locked)</div>
+        </nav>
+
+        <div id="major" class="container active"></div>
+        <div id="minor" class="container"></div>
+        <div id="sub" class="container"></div>
+
+        <div id="unlock-msg">
+            <i class="fas fa-lock"></i> Solve the <b>Advisory Committee on FR, Minorities & Tribal Areas</b> to unlock Sub-Committees.
+        </div>
+
+        <button class="btn-finish" onclick="showFinalResults()">Finish & Show Summary</button>
+    </main>
+
+    <!-- Results Modal -->
+    <div class="summary-overlay" id="summary-overlay">
+        <div class="summary-card">
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">Quiz Complete!</h2>
+            <div style="display: flex; gap: 40px; justify-content: center; margin-bottom: 30px;">
+                <div>
+                    <div class="stats-label">Correct</div>
+                    <div class="stats-value" style="color: var(--success);" id="final-correct">0</div>
+                </div>
+                <div>
+                    <div class="stats-label">Incorrect Attempts</div>
+                    <div class="stats-value" style="color: var(--error);" id="final-wrong">0</div>
+                </div>
+            </div>
+            <button class="btn-finish" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const majorData = [
+            { id: 1, name: "Union Powers Committee", ans: "Jawaharlal Nehru" },
+            { id: 2, name: "Union Constitution Committee", ans: "Jawaharlal Nehru" },
+            { id: 3, name: "States Committee (Committee for Negotiating with States)", ans: "Jawaharlal Nehru" },
+            { id: 4, name: "Provincial Constitution Committee", ans: "Vallabhbhai Patel" },
+            { id: 5, name: "Advisory Committee on FR, Minorities & Tribal Areas", ans: "Vallabhbhai Patel", isTrigger: true },
+            { id: 6, name: "Drafting Committee", ans: "BR Ambedkar" },
+            { id: 7, name: "Rules of Procedure Committee", ans: "Rajendra Prasad" },
+            { id: 8, name: "Steering Committee", ans: "Rajendra Prasad" }
+        ];
+
+        const minorData = [
+            { id: 9, name: "Finance and Staff Committee", ans: "Dr. Rajendra Prasad" },
+            { id: 10, name: "Credentials Committee", ans: "Alladi Krishnaswamy Ayyar" },
+            { id: 11, name: "House Committee", ans: "B Pattabhi Sitaramayya" },
+            { id: 12, name: "Order of Business Committee", ans: "Dr. KM Munshi" },
+            { id: 13, name: "Ad Hoc Committee on National Flag", ans: "Dr. Rajendra Prasad" },
+            { id: 14, name: "Committee on Functions of the Constituent Assembly", ans: "GV Mavalankar" },
+            { id: 18, name: "Ad-hoc Committee on the Supreme Court", ans: "S Varadachariar" },
+            { id: 15, name: "Committee on Chief Commissioners' Provinces", ans: "B Pattabhi Sitaramayya" },
+            { id: 16, name: "Expert Committee on the Financials Provisions", ans: "Nalini Ranjan Sarkar" },
+            { id: 17, name: "Linguistic Provinces Commission", ans: "SK Dhar" },
+            { id: 19, name: "Special committee to examine the draft constitution", ans: "Jawaharlal Nehru" },
+            { id: 20, name: "Press Gallery Committee", ans: "Usha Nath Sen" },
+            { id: 21, name: "Ad-hoc Committee on Citizenship", ans: "S Varadachariar" }
+        ];
+
+        const subData = [
+            { id: 23, name: "Fundamental Rights Sub-Committee", ans: "JB Kripalani" },
+            { id: 24, name: "Minorities Sub-Committee", ans: "HC Mukherjee" },
+            { id: 25, name: "NE Frontier Tribal Areas", ans: "Gopinath Bordoloi" },
+            { id: 26, name: "Excluded & Partially Excluded Areas", ans: "AV Thakkar" },
+            { id: 27, name: "NW Frontier Tribal Areas", ans: "Khan Abdul Ghaffar Khan" }
+        ];
+
+        let correct = 0;
+        let wrong = 0;
+        let subUnlocked = false;
+
+        function init() {
+            renderList(majorData, 'major');
+            renderList(minorData, 'minor');
+            renderList(subData, 'sub');
+        }
+
+        function renderList(data, containerId) {
+            const container = document.getElementById(containerId);
+            data.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.innerHTML = `
+                    <div class="row-label">${item.name}</div>
+                    <div>
+                        <input type="text" class="input-box" placeholder="Chairman Name" 
+                               onkeyup="handleInput(event, this, '${item.ans}', ${item.isTrigger || false})">
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function handleInput(e, input, correctAns, isTrigger) {
+            if (e.key === 'Enter') {
+                const userVal = input.value.toLowerCase().replace(/\./g, '').trim();
+                const official = correctAns.toLowerCase().replace(/\./g, '').trim();
+
+                if (userVal.length > 2 && (official.includes(userVal) || userVal.includes(official))) {
+                    if (!input.classList.contains('correct')) {
+                        input.classList.remove('wrong');
+                        input.classList.add('correct');
+                        input.disabled = true;
+                        input.value = correctAns;
+                        correct++;
+                        if (isTrigger) unlockSubs();
+                        updateSidebar();
+                    }
+                } else {
+                    wrong++;
+                    input.classList.add('wrong');
+                    updateSidebar();
+                    setTimeout(() => input.classList.remove('wrong'), 500);
+                }
+            }
+        }
+
+        function unlockSubs() {
+            subUnlocked = true;
+            document.getElementById('sub-tab').classList.remove('locked');
+            document.getElementById('sub-tab').innerText = "Sub-Committees (5)";
+            document.getElementById('unlock-msg').style.display = 'none';
+        }
+
+        function updateSidebar() {
+            document.getElementById('correct-count').innerText = correct;
+            document.getElementById('wrong-count').innerText = wrong;
+            const progress = (correct / 27) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function switchTab(id, el) {
+            if (id === 'sub' && !subUnlocked) return;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            
+            el.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        function showFinalResults() {
+            document.getElementById('final-correct').innerText = correct;
+            document.getElementById('final-wrong').innerText = wrong;
+            document.getElementById('summary-overlay').style.display = 'flex';
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
