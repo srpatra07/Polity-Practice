@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution Workbook | One-Shot Challenge</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --accent: #38bdf8;
+            --gold: #fbbf24;
+            --success: #22c55e;
+            --wrong: #ef4444;
+            --text: #f1f5f9;
+            --border: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
+            padding-bottom: 150px;
+        }
+
+        .dashboard {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(2, 6, 23, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 2px solid var(--gold);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            display: block;
+        }
+
+        .stat-lbl {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page-tag {
+            background: var(--gold);
+            color: black;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 900;
+            font-size: 0.8rem;
+            margin: 50px 0 15px 0;
+            display: inline-block;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .q-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1e293b;
+            gap: 20px;
+        }
+
+        .q-text {
+            flex: 1;
+            font-size: 1.05rem;
+            color: #cbd5e1;
+        }
+
+        input[type="text"] {
+            background: #020617;
+            border: 2px solid var(--border);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 220px;
+            outline: none;
+            transition: 0.4s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        /* State Classes */
+        input[type="text"].correct {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        input[type="text"].incorrect {
+            border-color: var(--wrong);
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--wrong);
+            text-decoration: line-through;
+        }
+
+        input[type="text"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px dashed var(--accent);
+        }
+
+        .flow-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .node {
+            background: #1e293b;
+            border: 2px solid var(--accent);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 160px;
+        }
+
+        .node-lbl {
+            font-size: 0.7rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .name-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .summary-box {
+            text-align: center;
+        }
+
+        .summary-val {
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        .success-text {
+            color: var(--success);
+        }
+
+        .wrong-text {
+            color: var(--wrong);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard">
+        <div class="stat-item"><span class="stat-val" id="highScore">0</span><span class="stat-lbl">Best Score</span>
+        </div>
+        <div class="stat-item"><span class="stat-val" id="totalQs">0</span><span class="stat-lbl">Total Questions</span>
+        </div>
+        <!-- New Small Counters -->
+        <div class="stat-item"><span class="stat-val success-text" id="score-correct">0</span><span
+                class="stat-lbl">Correct</span></div>
+        <div class="stat-item"><span class="stat-val wrong-text" id="score-wrong">0</span><span
+                class="stat-lbl">Wrong</span></div>
+    </div>
+
+    <div class="container" id="quiz-body">
+
+        <!-- PAGE 1 & 2 -->
+        <div class="page-tag">PAGE 1 & 2</div>
+        <h2><i class="fas fa-landmark"></i> Origins & Membership</h2>
+        <div class="card">
+            <div class="q-row"><span>Idea of CA (Who?)</span><input type="text" data-ans="MN Roy"></div>
+            <div class="q-row"><span>Year idea first proposed:</span><input type="text" data-ans="1934"></div>
+            <div class="q-row"><span>INC demand for CA (Year):</span><input type="text" data-ans="1935"></div>
+        </div>
+
+        <div class="flow-container">
+            <div class="node">
+                <div class="node-lbl">Total Strength of CA</div><input type="text" data-ans="389">
+            </div>
+            <div class="flow-row">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <div class="node" style="border-color: var(--gold);">
+                        <div class="node-lbl">Provinces</div><input type="text" data-ans="296">
+                    </div>
+                    <div class="flow-row">
+                        <div class="node">
+                            <div class="node-lbl">Governor Prov.</div><input type="text" data-ans="292">
+                        </div>
+                        <div class="node">
+                            <div class="node-lbl">Chief Comm.</div><input type="text" data-ans="4">
+                        </div>
+                    </div>
+                </div>
+                <div class="node">
+                    <div class="node-lbl">Princely States</div><input type="text" data-ans="93">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="node-lbl">The 11 Provinces:</div>
+            <div class="name-grid">
+                <input type="text" data-ans="Bombay" placeholder="2">
+                <input type="text" data-ans="Bengal" placeholder="1">
+                <input type="text" data-ans="Madras" placeholder="3">
+                <input type="text" data-ans="Bihar" placeholder="5">
+                <input type="text" data-ans="Assam" placeholder="6">
+                <input type="text" data-ans="United Provinces" placeholder="4">
+                <input type="text" data-ans="NWFP" placeholder="9">
+                <input type="text" data-ans="Central Provinces" placeholder="7">
+                <input type="text" data-ans="Punjab" placeholder="8">
+                <input type="text" data-ans="Sindh" placeholder="10">
+                <input type="text" data-ans="Orissa" placeholder="11">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="node-lbl">4 Chief Commissioner Provinces:</div>
+            <div class="name-grid">
+                <input type="text" data-ans="Ajmer Merwara">
+                <input type="text" data-ans="British Baluchistan">
+                <input type="text" data-ans="Coorg">
+                <input type="text" data-ans="Delhi">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="q-row"><span>British Provinces Constituency (Types):</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="Muslim"><input type="text"
+                        data-ans="Sikh"><input type="text" data-ans="General"></div>
+            </div>
+            <div class="q-row"><span>Voting Method:</span><input type="text" data-ans="Single Transferable Vote"></div>
+            <div class="q-row"><span>Election Franchise:</span><input type="text" data-ans="Limited Franchise"></div>
+        </div>
+
+        <!-- PAGE 3 & 4 -->
+        <div class="page-tag">PAGE 3 & 4</div>
+        <h2><i class="fas fa-gavel"></i> Meetings & Appointments</h2>
+        <div class="flow-container">
+            <div class="node-lbl">Election Results (296 Seats)</div>
+            <div class="flow-row">
+                <div class="node">
+                    <div class="node-lbl">INC</div><input type="text" data-ans="208">
+                </div>
+                <div class="node">
+                    <div class="node-lbl">Muslim League</div><input type="text" data-ans="73">
+                </div>
+                <div class="node">
+                    <div class="node-lbl">Independent</div><input type="text" data-ans="15">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="q-row"><span>Constituent Assembly 1st meeting date:</span><input type="text"
+                    data-ans="Dec 9 1946"></div>
+            <div class="q-row"><span>Members attended 1st meeting:</span><input type="text" data-ans="207"></div>
+            <div class="q-row"><span>Temporary Chairman of the Constituent Assembly:</span><input type="text"
+                    data-ans="Sachchidananda Sinha (Oldest Member as French Practice)"></div>
+            <div class="q-row"><span>Permanent Chairman Date:</span><input type="text" data-ans="Dec 11 1946"></div>
+            <div class="q-row"><span>Permanent Chairman (Who?):</span><input type="text" data-ans="Dr. Rajendra Prasad">
+            </div>
+            <div class="q-row"><span>1st Vice President:</span><input type="text" data-ans="HC Mukherjee (Jan 24 1947)">
+            </div>
+            <div class="q-row"><span>2nd Vice President:</span><input type="text"
+                    data-ans="VT Krishnamachari (July 16 1947)"></div>
+            <div class="q-row"><span>Objective Resolution Date:</span><input type="text" data-ans="Dec 13 1946"></div>
+            <div class="q-row"><span>Objective Resolution moved by Who?</span><input type="text"
+                    data-ans="Jawaharlal Nehru">
+            </div>
+            <div class="q-row"><span>Objectives Resolution adopted on:</span><input type="text" data-ans="Jan 22 1947">
+            </div>
+            <div class="q-row"><span>Chairman (Constituent Body):</span><input type="text" data-ans="Rajendra Prasad">
+            </div>
+            <div class="q-row"><span>Chairman (Legislative Body):</span><input type="text" data-ans="GV Mavalankar">
+            </div>
+            <div class="q-row"><span>Dominion Legislature Met on:</span><input type="text" data-ans="Nov 17 1947"></div>
+            <div class="q-row"><span>Speaker of Dominion Legislature:</span><input type="text" data-ans="GV Mavalankar">
+            </div>
+        </div>
+
+        <!-- PAGE 5 -->
+        <div class="page-tag">PAGE 5</div>
+        <div class="card">
+            <div class="node-lbl">After Pakistan Created (299 Total):</div>
+            <div class="flow-row">
+                <div class="node">
+                    <div class="node-lbl">Provinces</div><input type="text" data-ans="229">
+                </div>
+                <div class="node">
+                    <div class="node-lbl">Princely States</div><input type="text" data-ans="70">
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="q-row"><span>Commonwealth Ratified in:</span><input type="text" data-ans="May 1949"></div>
+            <div class="q-row"><span>Adopted National Flag:</span><input type="text" data-ans="July 22 1947"></div>
+            <div class="q-row"><span>National Anthem/Song adopted:</span><input type="text" data-ans="Jan 24 1950">
+            </div>
+            <div class="q-row"><span>1st President Elected (Who/When):</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="Rajendra Prasad"><input type="text"
+                        data-ans="Jan 24 1950"></div>
+            </div>
+            <div class="q-row"><span>CA Total Sessions:</span><input type="text" data-ans="11"></div>
+            <div class="q-row"><span>CA Duration:</span><input type="text" data-ans="2 years 11 months 18 days"></div>
+        </div>
+
+        <!-- PAGE 6 -->
+        <div class="page-tag">PAGE 6</div>
+        <div class="card">
+            <div class="q-row"><span>Draft Constitution Considered for:</span><input type="text" data-ans="114 days">
+            </div>
+            <div class="q-row"><span>Total Expenditure:</span><input type="text" data-ans="64 Lakhs"></div>
+            <div class="q-row"><span>CA Final Session Date:</span><input type="text" data-ans="Jan 24 1950"></div>
+            <div class="q-row"><span>First General Elections:</span><input type="text" data-ans="1951-52"></div>
+            <div class="q-row"><span>Provisional Parliament till:</span><input type="text" data-ans="April 17 1952">
+            </div>
+            <div class="q-row"><span>Drafting Committee Setup:</span><input type="text" data-ans="Aug 29 1947"></div>
+            <div class="q-row"><span>Committee Days:</span><input type="text" data-ans="141 days"></div>
+            <div class="q-row"><span>1st Draft published:</span><input type="text" data-ans="Feb 1948"></div>
+            <div class="q-row"><span>2nd Draft published:</span><input type="text" data-ans="Oct 1948"></div>
+        </div>
+
+        <div class="card">
+            <div class="node-lbl">Drafting Committee Members:</div>
+            <div class="name-grid">
+                <input type="text" data-ans="BR Ambedkar" placeholder="Chairman">
+                <input type="text" data-ans="N Gopalaswamy Ayyangar">
+                <input type="text" data-ans="Alladi Krishnaswamy Ayyar">
+                <input type="text" data-ans="KM Munshi">
+                <input type="text" data-ans="Syed Mohammad Saadulla">
+                <input type="text" data-ans="N Madhava Rau">
+                <input type="text" data-ans="TT Krishnamachari">
+            </div>
+        </div>
+
+        <!-- PAGE 7 -->
+        <div class="page-tag">PAGE 7</div>
+        <div class="card">
+            <div class="q-row"><span>Final Draft Introduced by (Who/When):</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="BR Ambedkar"><input type="text"
+                        data-ans="Nov 4 1948"></div>
+            </div>
+            <div class="q-row"><span>General discussion on Draft Constitution (Days/Till):</span>
+                <div class="name-grid" style="margin:0">
+                    <input type="text" data-ans="5 days">
+                    <input type="text" data-ans="Nov 9 1948">
+                </div>
+            </div>
+            <div class="q-row"><span>Second Reading (Start to End):</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="Nov 15 1948"><input type="text"
+                        data-ans="Oct 17 1949"></div>
+            </div>
+            <div class="q-row"><span>Amendments Proposed/Discussed:</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="7635"><input type="text"
+                        data-ans="2473"></div>
+            </div>
+            <div class="q-row"><span>Third Reading Date:</span><input type="text" data-ans="Nov 14 1949"></div>
+            <div class="q-row"><span>Signed by (How many?):</span><input type="text" data-ans="284"></div>
+            <div class="q-row"><span>Articles/Schedules (Original):</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="395"><input type="text"
+                        data-ans="8"></div>
+            </div>
+            <div class="q-row"><span>Law Minister:</span><input type="text" data-ans="BR Ambedkar"></div>
+        </div>
+
+        <!-- PAGE 8 & 9 -->
+        <div class="page-tag">PAGE 8 & 9</div>
+        <div class="card">
+            <div class="q-row"><span>Father / Chief Architect:</span><input type="text" data-ans="BR Ambedkar"></div>
+            <div class="q-row"><span>Constitution Day Declared (Date):</span><input type="text" data-ans="2015"></div>
+            <div class="q-row"><span>Critic: "Drafting Committee as Drifting Committee":</span><input type="text"
+                    data-ans="Naziruddin Ahmed">
+            </div>
+            <div class="q-row"><span>Critic: "One party body i.e. CA is congress and Congress is CA":</span><input
+                    type="text" data-ans="Granville Austin">
+            </div>
+            <div class="q-row"><span>Critic: "Body of Hindus":</span><input type="text" data-ans="Lord Viscount Simon">
+            </div>
+            <div class="q-row"><span>Symbol of CA:</span><input type="text" data-ans="Elephant"></div>
+            <div class="q-row"><span>Constitutional or Legal Advisor to CA:</span><input type="text" data-ans="BN Rau">
+            </div>
+            <div class="q-row"><span>Secretary to CA:</span><input type="text" data-ans="HVR Iyengar"></div>
+            <div class="q-row"><span>Chief Draftsman of Constitution to CA:</span><input type="text"
+                    data-ans="S.N. Mukherjee"></div>
+            <div class="q-row"><span>Calligrapher (English/Style):</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="Prem Behari Narain Raizada"><input
+                        type="text" data-ans="Italic"></div>
+            </div>
+            <div class="q-row"><span>English Constitution Decorators:</span>
+                <div class="name-grid" style="margin:0">
+                    <input type="text" data-ans="Nand Lal Bose">
+                    <input type="text" data-ans="Beohar Rammanohar Sinha">
+                </div>
+            </div>
+            <div class="q-row"><span>Preamble Decorator:</span><input type="text" data-ans="Beohar Rammanohar Sinha">
+            </div>
+            <div class="q-row"><span>Hindi Calligrapher / Decorator:</span>
+                <div class="name-grid" style="margin:0"><input type="text" data-ans="Vasant Krishan Vaidya"><input
+                        type="text" data-ans="Nand Lal Bose"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let correctCount = 0;
+        let wrongCount = 0;
+        let attemptCount = 0;
+        let highScore = localStorage.getItem('ca_one_shot_high') || 0;
+
+        window.onload = () => {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            document.getElementById('totalQs').innerText = inputs.length;
+            document.getElementById('highScore').innerText = highScore;
+
+            inputs.forEach(el => {
+                el.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') checkInput(el);
+                });
+            });
+        };
+
+        function norm(s) { return s.toLowerCase().replace(/[^a-z0-9]/g, '').trim(); }
+
+        function checkInput(el) {
+            if (el.disabled || el.value.trim() === "") return;
+
+            const userVal = norm(el.value);
+            const correctVal = norm(el.dataset.ans);
+
+            attemptCount++;
+            el.disabled = true; // LOCK the input
+
+            if (userVal === correctVal || (correctVal.includes(userVal) && userVal.length > 3)) {
+                el.classList.add('correct');
+                correctCount++;
+            } else {
+                el.classList.add('incorrect');
+                // Show the correct answer on hover or small text
+                el.title = "Correct answer was: " + el.dataset.ans;
+                wrongCount++;
+            }
+
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            document.getElementById('score-correct').innerText = correctCount;
+            document.getElementById('score-wrong').innerText = wrongCount;
+            document.getElementById('score-total').innerText = attemptCount;
+
+            if (correctCount > highScore) {
+                highScore = correctCount;
+                localStorage.setItem('ca_one_shot_high', highScore);
+                document.getElementById('highScore').innerText = highScore;
+            }
+        }
+    </script>
+</body>
+
+</html>
