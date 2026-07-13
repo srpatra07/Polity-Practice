@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Constituent Assembly Hub | Dark Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Constituent Assembly | Card Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
         :root {
-            --primary: #3b82f6;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f1f5f9;
+            --primary: #6366f1;
+            --bg-dark: #020617;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
             --text-dim: #94a3b8;
-            --border: #334155;
             --success: #10b981;
             --error: #ef4444;
-            --gold: #f59e0b;
+            --gold: #fbbf24;
         }
 
         * {
@@ -28,339 +28,396 @@
 
         body {
             background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top right, #1e1b4b, transparent),
+                radial-gradient(circle at bottom left, #0f172a, transparent);
             color: var(--text-main);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* --- Sidebar --- */
-        .sidebar {
-            width: 320px;
-            background: #020617;
-            padding: 40px 25px;
-            position: fixed;
             height: 100vh;
-            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar h2 {
-            font-size: 1.2rem;
-            color: var(--gold);
-            margin-bottom: 30px;
-            display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        .stats-card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
+        /* --- Header & Progress --- */
+        .top-ui {
+            position: absolute;
+            top: 40px;
+            text-align: center;
+            width: 100%;
         }
 
-        .stats-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px; }
-        .stats-value { font-size: 1.8rem; font-weight: 700; margin: 5px 0; }
-        
-        .progress-bar {
+        .progress-container {
+            width: 300px;
             height: 6px;
             background: #334155;
-            border-radius: 3px;
+            border-radius: 10px;
+            margin: 20px auto;
             overflow: hidden;
-            margin-top: 10px;
-        }
-        #progress-fill { height: 100%; width: 0%; background: var(--primary); transition: 0.4s; }
-
-        /* --- Main Content --- */
-        main {
-            margin-left: 320px;
-            flex: 1;
-            padding: 40px 60px;
-            max-width: 1100px;
         }
 
-        header h1 { font-size: 1.8rem; margin-bottom: 8px; }
-        header p { color: var(--text-dim); margin-bottom: 40px; }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
-        /* --- Tabs --- */
-        .tabs {
+        .stats-hub {
             display: flex;
             gap: 30px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 30px;
+            justify-content: center;
+            margin-top: 10px;
         }
-        .tab {
-            padding: 12px 5px;
-            cursor: pointer;
+
+        .stat-item {
+            font-size: 0.9rem;
+            font-weight: 500;
             color: var(--text-dim);
-            font-weight: 600;
+        }
+
+        .stat-item span {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        /* --- Card System --- */
+        .game-container {
             position: relative;
-            transition: 0.3s;
+            width: 500px;
+            height: 400px;
+            perspective: 1000px;
         }
-        .tab.active { color: var(--primary); }
-        .tab.active::after {
-            content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--primary);
-        }
-        .tab.locked { opacity: 0.4; cursor: not-allowed; }
 
-        /* --- Committee Rows --- */
-        .container { display: none; animation: slideUp 0.4s ease; }
-        .container.active { display: block; }
-
-        .row {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 15px 25px;
-            margin-bottom: 12px;
-            display: grid;
-            grid-template-columns: 1fr 250px;
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            transition: 0.3s;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            backface-visibility: hidden;
         }
-        .row:hover { border-color: var(--primary); }
 
-        .row-label { font-size: 0.95rem; font-weight: 500; }
+        /* Card Entry/Exit Animations */
+        .card.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .card.upcoming {
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .card.exit-correct {
+            transform: translateX(500px) rotate(20deg);
+            opacity: 0;
+        }
+
+        .card.exit-wrong {
+            transform: translateX(-500px) rotate(-20deg);
+            opacity: 0;
+        }
+
+        .committee-category {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .committee-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 40px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- Input Area --- */
+        .input-wrapper {
+            width: 100%;
+            position: relative;
+        }
 
         .input-box {
-            background: #0f172a;
-            border: 1px solid var(--border);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            outline: none;
             width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 15px 20px;
+            color: white;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
             transition: 0.3s;
         }
-        .input-box:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-        .input-box.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.1); color: var(--success); font-weight: bold; }
-        .input-box.wrong { border-color: var(--error); animation: shake 0.3s; }
 
-        /* --- Unlock Banner --- */
-        #unlock-msg {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px dashed var(--gold);
-            padding: 15px;
-            border-radius: 8px;
-            color: var(--gold);
-            margin-top: 20px;
-            display: block;
-            text-align: center;
-            font-size: 0.9rem;
+        .input-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
         }
 
-        /* --- Summary --- */
-        .summary-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: none; justify-content: center; align-items: center; z-index: 200;
-        }
-        .summary-card {
-            background: var(--bg-card); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--gold);
+        /* Feedback States */
+        .card.correct-flash {
+            border-color: var(--success);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
         }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-
-        .btn-finish {
-            margin-top: 40px;
-            padding: 12px 30px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-    </style>
-</head>
-<body>
-
-    <aside class="sidebar">
-        <h2><i class="fas fa-gavel"></i> Practice Hub</h2>
-        
-        <div class="stats-card">
-            <div class="stats-label">Correct Guesses</div>
-            <div class="stats-value" id="correct-count">0</div>
-            <div class="progress-bar"><div id="progress-fill"></div></div>
-        </div>
-
-        <div class="stats-card" style="border-color: var(--error);">
-            <div class="stats-label">Wrong Attempts</div>
-            <div class="stats-value" style="color: var(--error);" id="wrong-count">0</div>
-        </div>
-
-        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 20px;">
-            <i class="fas fa-keyboard"></i> Press <b>Enter</b> to submit your guess.
-        </p>
-
-        <button onclick="location.reload()" style="margin-top: auto; background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 10px; border-radius: 8px; cursor: pointer;">
-            Restart Quiz
-        </button>
-    </aside>
-
-    <main>
-        <header>
-            <h1>Committees of the Assembly</h1>
-            <p>Guess the Chairman for each committee to complete the constitution.</p>
-        </header>
-
-        <nav class="tabs">
-            <div class="tab active" onclick="switchTab('major', this)">Major Committees</div>
-            <div class="tab" onclick="switchTab('minor', this)">Minor Committees</div>
-            <div class="tab locked" id="sub-tab" onclick="switchTab('sub', this)">Sub-Committees (Locked)</div>
-        </nav>
-
-        <div id="major" class="container active"></div>
-        <div id="minor" class="container"></div>
-        <div id="sub" class="container"></div>
-
-        <div id="unlock-msg">
-            <i class="fas fa-lock"></i> Solve the <b>Advisory Committee on FR, Minorities & Tribal Areas</b> to unlock Sub-Committees.
-        </div>
-
-        <button class="btn-finish" onclick="showFinalResults()">Finish & Show Summary</button>
-    </main>
-
-    <!-- Results Modal -->
-    <div class="summary-overlay" id="summary-overlay">
-        <div class="summary-card">
-            <h2 style="font-size: 2rem; margin-bottom: 20px;">Quiz Complete!</h2>
-            <div style="display: flex; gap: 40px; justify-content: center; margin-bottom: 30px;">
-                <div>
-                    <div class="stats-label">Correct</div>
-                    <div class="stats-value" style="color: var(--success);" id="final-correct">0</div>
-                </div>
-                <div>
-                    <div class="stats-label">Incorrect Attempts</div>
-                    <div class="stats-value" style="color: var(--error);" id="final-wrong">0</div>
-                </div>
-            </div>
-            <button class="btn-finish" onclick="location.reload()">Play Again</button>
-        </div>
-    </div>
-
-    <script>
-        const majorData = [
-            { id: 1, name: "Union Powers Committee", ans: "Jawaharlal Nehru" },
-            { id: 2, name: "Union Constitution Committee", ans: "Jawaharlal Nehru" },
-            { id: 3, name: "States Committee (Committee for Negotiating with States)", ans: "Jawaharlal Nehru" },
-            { id: 4, name: "Provincial Constitution Committee", ans: "Sardar Patel" },
-            { id: 5, name: "Advisory Committee on FR, Minorities & Tribal Areas", ans: "Sardar Patel", isTrigger: true },
-            { id: 6, name: "Drafting Committee", ans: "Dr. BR Ambedkar" },
-            { id: 7, name: "Rules of Procedure Committee", ans: "Dr. Rajendra Prasad" },
-            { id: 8, name: "Steering Committee", ans: "Dr. Rajendra Prasad" }
-        ];
-
-        const minorData = [
-            { id: 9, name: "Finance and Staff Committee", ans: "Dr. Rajendra Prasad" },
-            { id: 10, name: "Credentials Committee", ans: "Alladi Krishnaswamy Ayyar" },
-            { id: 11, name: "House Committee", ans: "B Pattabhi Sitaramayya" },
-            { id: 12, name: "Order of Business Committee", ans: "Dr. KM Munshi" },
-            { id: 13, name: "Ad Hoc Committee on National Flag", ans: "Dr. Rajendra Prasad" },
-            { id: 14, name: "Committee on Functions of the Constituent Assembly", ans: "GV Mavalankar" },
-            { id: 18, name: "Ad-hoc Committee on the Supreme Court", ans: "S Varadachariar" },
-            { id: 15, name: "Committee on Chief Commissioners' Provinces", ans: "B Pattabhi Sitaramayya" },
-            { id: 16, name: "Expert Committee on the Financials Provisions", ans: "Nalini Ranjan Sarkar" },
-            { id: 17, name: "Linguistic Provinces Commission", ans: "SK Dhar" },
-            { id: 19, name: "Special committee to examine the draft constitution", ans: "Jawaharlal Nehru" },
-            { id: 20, name: "Press Gallery Committee", ans: "Usha Nath Sen" },
-            { id: 21, name: "Ad-hoc Committee on Citizenship", ans: "S Varadachariar" }
-        ];
-
-        const subData = [
-            { id: 23, name: "Fundamental Rights Sub-Committee", ans: "JB Kripalani" },
-            { id: 24, name: "Minorities Sub-Committee", ans: "HC Mukherjee" },
-            { id: 25, name: "NE Frontier Tribal Areas", ans: "Gopinath Bordoloi" },
-            { id: 26, name: "Excluded & Partially Excluded Areas", ans: "AV Thakkar" },
-            { id: 27, name: "NW Frontier Tribal Areas", ans: "Khan Abdul Ghaffar Khan" }
-        ];
-
-        let correct = 0;
-        let wrong = 0;
-        let subUnlocked = false;
-
-        function init() {
-            renderList(majorData, 'major');
-            renderList(minorData, 'minor');
-            renderList(subData, 'sub');
+        .card.wrong-flash {
+            border-color: var(--error);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+            animation: shake 0.4s;
         }
 
-        function renderList(data, containerId) {
-            const container = document.getElementById(containerId);
-            data.forEach(item => {
-                const row = document.createElement('div');
-                row.className = 'row';
-                row.innerHTML = `
-                    <div class="row-label">${item.name}</div>
-                    <div>
-                        <input type="text" class="input-box" placeholder="Chairman Name" 
-                               onkeyup="handleInput(event, this, '${item.ans}', ${item.isTrigger || false})">
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
+        @keyframes shake {
 
-        function handleInput(e, input, correctAns, isTrigger) {
-            if (e.key === 'Enter') {
-                const userVal = input.value.toLowerCase().replace(/\./g, '').trim();
-                const official = correctAns.toLowerCase().replace(/\./g, '').trim();
+            0%,
+            100% {
+                transform: translateX(0);
+            }
 
-                if (userVal.length > 2 && (official.includes(userVal) || userVal.includes(official))) {
-                    if (!input.classList.contains('correct')) {
-                        input.classList.remove('wrong');
-                        input.classList.add('correct');
-                        input.disabled = true;
-                        input.value = correctAns;
-                        correct++;
-                        if (isTrigger) unlockSubs();
-                        updateSidebar();
-                    }
-                } else {
-                    wrong++;
-                    input.classList.add('wrong');
-                    updateSidebar();
-                    setTimeout(() => input.classList.remove('wrong'), 500);
-                }
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
             }
         }
 
-        function unlockSubs() {
-            subUnlocked = true;
-            document.getElementById('sub-tab').classList.remove('locked');
-            document.getElementById('sub-tab').innerText = "Sub-Committees (5)";
-            document.getElementById('unlock-msg').style.display = 'none';
+        .correct-reveal {
+            margin-top: 15px;
+            color: var(--success);
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: 0.3s;
         }
 
-        function updateSidebar() {
-            document.getElementById('correct-count').innerText = correct;
-            document.getElementById('wrong-count').innerText = wrong;
-            const progress = (correct / 27) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
+        .correct-reveal.show {
+            opacity: 1;
         }
 
-        function switchTab(id, el) {
-            if (id === 'sub' && !subUnlocked) return;
-            
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            
-            el.classList.add('active');
-            document.getElementById(id).classList.add('active');
+        /* --- Summary Overlay --- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
         }
 
-        function showFinalResults() {
-            document.getElementById('final-correct').innerText = correct;
-            document.getElementById('final-wrong').innerText = wrong;
-            document.getElementById('summary-overlay').style.display = 'flex';
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 8px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .btn-restart {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: 0.3s;
+        }
+
+        .btn-restart:hover {
+            transform: scale(1.05);
+            background: #818cf8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-ui">
+        <h1 style="font-size: 1rem; color: var(--text-dim);">CONSTITUENT ASSEMBLY CHALLENGE</h1>
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div class="stats-hub">
+            <div class="stat-item">Correct: <span id="stat-correct" style="color: var(--success)">0</span></div>
+            <div class="stat-item">Wrong: <span id="stat-wrong" style="color: var(--error)">0</span></div>
+            <div class="stat-item">Left: <span id="stat-left">0</span></div>
+        </div>
+    </div>
+
+    <div class="game-container" id="game-container">
+        <!-- One card will be injected here at a time -->
+    </div>
+
+    <div class="overlay" id="finish-screen">
+        <div class="score-circle" id="final-percent">0%</div>
+        <h2 id="final-msg">Incredible Knowledge!</h2>
+        <p id="final-stats" style="color: var(--text-dim); margin-top: 10px;"></p>
+        <button class="btn-restart" onclick="location.reload()">Start New Session</button>
+    </div>
+
+    <script>
+        const data = [
+            // Major Committees
+            { name: "Union Powers Committee", ans: "Jawaharlal Nehru", cat: "Major" },
+            { name: "Union Constitution Committee", ans: "Jawaharlal Nehru", cat: "Major" },
+            { name: "States Committee (Committee for Negotiating with States)", ans: "Jawaharlal Nehru", cat: "Major" },
+            { name: "Provincial Constitution Committee", ans: "Sardar Patel", cat: "Major" },
+            { name: "Advisory Committee on FR, Minorities & Tribal Areas", ans: "Sardar Patel", cat: "Major" },
+            { name: "Drafting Committee", ans: "Dr. BR Ambedkar", cat: "Major" },
+            { name: "Rules of Procedure Committee", ans: "Dr. Rajendra Prasad", cat: "Major" },
+            { name: "Steering Committee", ans: "Dr. Rajendra Prasad", cat: "Major" },
+
+            // Minor Committees
+            { name: "Finance and Staff Committee", ans: "Dr. Rajendra Prasad", cat: "Minor" },
+            { name: "Credentials Committee", ans: "Alladi Krishnaswamy Ayyar", cat: "Minor" },
+            { name: "House Committee", ans: "B Pattabhi Sitaramayya", cat: "Minor" },
+            { name: "Order of Business Committee", ans: "Dr. KM Munshi", cat: "Minor" },
+            { name: "Ad Hoc Committee on National Flag", ans: "Dr. Rajendra Prasad", cat: "Minor" },
+            { name: "Committee on Functions of the Constituent Assembly", ans: "GV Mavalankar", cat: "Minor" },
+            { name: "Ad-hoc Committee on the Supreme Court", ans: "S Varadachariar", cat: "Minor" },
+            { name: "Committee on Chief Commissioners' Provinces", ans: "B Pattabhi Sitaramayya", cat: "Minor" },
+            { name: "Expert Committee on the Financials Provisions", ans: "Nalini Ranjan Sarkar", cat: "Minor" },
+            { name: "Linguistic Provinces Commission", ans: "SK Dhar", cat: "Minor" },
+            { name: "Special committee to examine the draft constitution", ans: "Jawaharlal Nehru", cat: "Minor" },
+            { name: "Press Gallery Committee", ans: "Usha Nath Sen", cat: "Minor" },
+            { name: "Ad-hoc Committee on Citizenship", ans: "S Varadachariar", cat: "Minor" },
+
+            // Sub-Committees
+            { name: "Fundamental Rights Sub-Committee", ans: "JB Kripalani", cat: "Sub" },
+            { name: "Minorities Sub-Committee", ans: "HC Mukherjee", cat: "Sub" },
+            { name: "NE Frontier Tribal Areas", ans: "Gopinath Bordoloi", cat: "Sub" },
+            { name: "Excluded & Partially Excluded Areas", ans: "AV Thakkar", cat: "Sub" },
+            { name: "NW Frontier Tribal Areas", ans: "Khan Abdul Ghaffar Khan", cat: "Sub" }
+        ];
+
+        let shuffled = [];
+        let currentIndex = 0;
+        let score = { correct: 0, wrong: 0 };
+
+        function init() {
+            shuffled = data.sort(() => Math.random() - 0.5);
+            document.getElementById('stat-left').innerText = shuffled.length;
+            showCard();
+        }
+
+        function showCard() {
+            if (currentIndex >= shuffled.length) {
+                finishGame();
+                return;
+            }
+
+            const item = shuffled[currentIndex];
+            const container = document.getElementById('game-container');
+
+            const card = document.createElement('div');
+            card.className = 'card upcoming';
+            card.innerHTML = `
+                <div class="committee-category">${item.cat} Committee</div>
+                <div class="committee-name">${item.name}</div>
+                <div class="input-wrapper">
+                    <input type="text" class="input-box" placeholder="Who was the Chairman?" id="q-input">
+                    <div class="correct-reveal" id="reveal">Answer: ${item.ans}</div>
+                </div>
+            `;
+
+            container.appendChild(card);
+
+            // Trigger Entry Animation
+            setTimeout(() => {
+                card.classList.remove('upcoming');
+                card.classList.add('active');
+                const input = card.querySelector('input');
+                input.focus();
+
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleGuess(input, item.ans, card);
+                });
+            }, 50);
+        }
+
+        function handleGuess(input, correctAns, card) {
+            const userVal = input.value.toLowerCase().replace(/\./g, '').trim();
+            const target = correctAns.toLowerCase().replace(/\./g, '').trim();
+
+            input.disabled = true;
+            const isCorrect = (userVal.length > 2 && (target.includes(userVal) || userVal.includes(target)));
+
+            if (isCorrect) {
+                card.classList.add('correct-flash');
+                score.correct++;
+            } else {
+                card.classList.add('wrong-flash');
+                document.getElementById('reveal').classList.add('show');
+                score.wrong++;
+            }
+
+            updateUI();
+
+            // Transition out and bring next card
+            setTimeout(() => {
+                card.classList.remove('active');
+                card.classList.add(isCorrect ? 'exit-correct' : 'exit-wrong');
+
+                currentIndex++;
+                setTimeout(() => {
+                    card.remove();
+                    showCard();
+                }, 400);
+            }, isCorrect ? 800 : 2000); // Give more time to see the answer if wrong
+        }
+
+        function updateUI() {
+            document.getElementById('stat-correct').innerText = score.correct;
+            document.getElementById('stat-wrong').innerText = score.wrong;
+            document.getElementById('stat-left').innerText = shuffled.length - currentIndex - 1;
+
+            const progress = ((currentIndex + 1) / shuffled.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        function finishGame() {
+            const total = shuffled.length;
+            const percent = Math.round((score.correct / total) * 100);
+
+            document.getElementById('final-percent').innerText = percent + "%";
+            document.getElementById('final-stats').innerText = `You mastered ${score.correct} out of ${total} committees!`;
+
+            if (percent < 50) document.getElementById('final-msg').innerText = "Keep Studying!";
+            else if (percent < 80) document.getElementById('final-msg').innerText = "Great Job!";
+            else document.getElementById('final-msg').innerText = "Constitutional Expert!";
+
+            document.getElementById('finish-screen').style.display = 'flex';
         }
 
         window.onload = init;
     </script>
 </body>
+
 </html>
