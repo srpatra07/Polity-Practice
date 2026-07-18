@@ -101,8 +101,15 @@
         }
 
         @keyframes cardIn {
-            from { transform: rotateY(-15deg) translateX(-50px); opacity: 0; }
-            to { transform: rotateY(0) translateX(0); opacity: 1; }
+            from {
+                transform: rotateY(-15deg) translateX(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: rotateY(0) translateX(0);
+                opacity: 1;
+            }
         }
 
         .case-label {
@@ -143,12 +150,35 @@
             border-radius: 12px;
         }
 
-        .stat-item { text-align: center; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
-        .stat-val { display: block; font-size: 1.3rem; font-weight: bold; }
-        #val-correct { color: var(--success); }
-        #val-wrong { color: var(--error); }
-        #val-done { color: #fff; }
-        #val-remain { color: var(--accent); }
+        .stat-item {
+            text-align: center;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+        }
+
+        .stat-val {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        #val-correct {
+            color: var(--success);
+        }
+
+        #val-wrong {
+            color: var(--error);
+        }
+
+        #val-done {
+            color: #fff;
+        }
+
+        #val-remain {
+            color: var(--accent);
+        }
 
         .input-box {
             display: flex;
@@ -156,7 +186,12 @@
             gap: 10px;
         }
 
-        label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
+        label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
 
         input {
             background: #000;
@@ -169,7 +204,10 @@
             width: 100%;
         }
 
-        input:focus { outline: none; border-color: var(--accent); }
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
 
         #amendment-container {
             transition: 0.4s;
@@ -177,7 +215,10 @@
             pointer-events: none;
         }
 
-        #amendment-container.active { opacity: 1; pointer-events: all; }
+        #amendment-container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
 
         .btn-check {
             background: var(--accent);
@@ -192,7 +233,10 @@
             margin-top: 5px;
         }
 
-        .btn-check:hover { background: #fcd34d; transform: translateY(-2px); }
+        .btn-check:hover {
+            background: #fcd34d;
+            transform: translateY(-2px);
+        }
 
         #feedback-area {
             text-align: center;
@@ -201,7 +245,10 @@
             min-height: 24px;
         }
 
-        .judge-img { font-size: 3rem; text-align: center; }
+        .judge-img {
+            font-size: 3rem;
+            text-align: center;
+        }
 
         #summary-modal {
             display: none;
@@ -211,7 +258,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
@@ -227,9 +274,32 @@
             box-shadow: 0 0 30px rgba(255, 87, 34, 0.3);
         }
 
-        .modal-content h2 { font-family: 'Cinzel', serif; color: var(--accent); margin-bottom: 20px; }
-        .res-line { display: flex; justify-content: space-between; margin: 12px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .btn-restart { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 100%; }
+        .modal-content h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .res-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+
+        .btn-restart {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -270,7 +340,8 @@
                     <input type="text" id="amnd-input" placeholder="e.g., 103, 2019" autocomplete="off">
                 </div>
                 <button class="btn-check" onclick="processJudgment()">PASS JUDGMENT ⚖️</button>
-                <button style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.8rem; margin-top:5px;"
+                <button
+                    style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.8rem; margin-top:5px;"
                     onclick="skipQuestion()">Skip Case 🏃‍♂️</button>
             </div>
             <div id="feedback-area"></div>
@@ -281,8 +352,10 @@
         <div class="modal-content">
             <h2>FINAL VERDICT</h2>
             <div class="res-line"><span>Mode:</span> <span id="res-mode">-</span></div>
-            <div class="res-line"><span>Total Correct:</span> <span id="res-correct" style="color:var(--success)">-</span></div>
-            <div class="res-line"><span>Total Wrong:</span> <span id="res-wrong" style="color:var(--error)">-</span></div>
+            <div class="res-line"><span>Total Correct:</span> <span id="res-correct"
+                    style="color:var(--success)">-</span></div>
+            <div class="res-line"><span>Total Wrong:</span> <span id="res-wrong" style="color:var(--error)">-</span>
+            </div>
             <button class="btn-restart" onclick="restartGame()">RESTART SESSION</button>
         </div>
     </div>
@@ -341,7 +414,22 @@
             { id: "30(1)", text: "All minorities whether based on religion or language have a right to establish and administer educational institutions of their choice.", amend: "" },
             { id: "32(1)", text: "Confers the power on Supreme Court to issue appropriate orders, directions or writs to enforce fundamental rights.", amend: "" },
             { id: "32(2)", text: "Writ jurisdiction of Supreme Court: Power to issue writs.", amend: "" },
-            { id: "32(3)", text: "Parliament has the power to confer writ jurisdiction by means of law on any other body.", amend: "" }
+            { id: "32(3)", text: "Parliament has the power to confer writ jurisdiction by means of law on any other body.", amend: "" },
+            {
+                id: "31A",
+                text: "Saves laws providing for acquisition of estates, extinguishment or modification of rights in estates, taking over management of properties, amalgamation of corporations, extinguishment of rights of directors or shareholders, and modification of mining agreements from being challenged on the ground of violation of Articles 14 and 19.",
+                amend: "1, 1951"
+            },
+            {
+                id: "31B",
+                text: "Validates the Acts and Regulations placed in the Ninth Schedule by granting them immunity from challenge on the ground of violation of Fundamental Rights, subject to the Basic Structure doctrine.",
+                amend: "1, 1951"
+            },
+            {
+                id: "31C",
+                text: "Laws made to give effect to the Directive Principles contained in Article 39(b) and Article 39(c) cannot be challenged for violating Articles 14 or 19. The extension of this protection to all Directive Principles by the 42nd Amendment was struck down by the Supreme Court.",
+                amend: "25, 1971"
+            },
         ];
 
         let mode = 'chrono';
@@ -372,7 +460,7 @@
             totalCorrect = 0;
             totalWrong = 0;
             sessionCount = 0;
-            
+
             if (mode === 'random') {
                 gameDeck = shuffleArray(articles);
             } else {
@@ -398,7 +486,7 @@
             }
 
             currentArt = gameDeck[currentIndex];
-            
+
             document.getElementById('statement-text').innerText = currentArt.text;
             document.getElementById('art-input').value = "";
             document.getElementById('amnd-input').value = "";
@@ -461,8 +549,9 @@
         }
 
         document.addEventListener('keypress', (e) => { if (e.key === 'Enter') processJudgment(); });
-        
+
         restartGame();
     </script>
 </body>
+
 </html>
