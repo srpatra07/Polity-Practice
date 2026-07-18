@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamental Duties Practice Hub</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #050811;
+            --accent-gold: #d4af37;
+            --accent-blue: #00d2ff;
+            --text-light: #e2e8f0;
+            --card-bg: #111827;
+            --correct: #22c55e;
+            --wrong: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Responsive Viewport */
+        #viewport {
+            position: relative;
+            width: 95vmin;
+            height: 95vmin;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Central Hub */
+        .center-hub {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            background: radial-gradient(circle, #1e293b, #0f172a);
+            padding: 2vmin;
+            width: 25vmin;
+            height: 25vmin;
+            border-radius: 50%;
+            border: 3px solid var(--accent-gold);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .center-hub i {
+            font-size: 4vmin;
+            color: var(--accent-gold);
+            margin-bottom: 0.5vmin;
+        }
+
+        .center-hub h1 {
+            font-size: 1.8vmin;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+            line-height: 1.2;
+        }
+
+        /* Nodes */
+        .duty-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .duty-node:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .node-icon {
+            width: 6.5vmin;
+            height: 6.5vmin;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-weight: bold;
+            color: var(--accent-blue);
+            font-size: 2.5vmin;
+        }
+
+        .duty-info {
+            margin-top: 0.5vmin;
+        }
+
+        .duty-article {
+            font-size: 1.3vmin;
+            font-weight: bold;
+            color: white;
+            display: block;
+            text-shadow: 1px 1px 3px black;
+        }
+
+        .score-badge {
+            font-size: 1.1vmin;
+            background: var(--accent-gold);
+            color: black;
+            padding: 1px 5px;
+            border-radius: 10px;
+            font-weight: 800;
+        }
+
+        /* Connection Lines */
+        .svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        line {
+            stroke: rgba(212, 175, 55, 0.25);
+            stroke-width: 1.5;
+        }
+
+        /* Practice Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 600px;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group textarea {
+            flex: 1;
+            padding: 12px 15px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            color: white;
+            border-radius: 6px;
+            outline: none;
+            transition: 0.2s;
+            resize: none;
+            height: 80px;
+        }
+
+        .input-group textarea.correct {
+            border-color: var(--correct);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .input-group textarea.wrong {
+            border-color: var(--wrong);
+        }
+
+        .status-icon {
+            width: 20px;
+            font-size: 18px;
+        }
+
+        .btn-submit {
+            background: var(--accent-gold);
+            color: black;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        .close-modal {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+            color: #64748b;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="viewport">
+        <svg class="svg-layer" id="line-canvas"></svg>
+
+        <div class="center-hub">
+            <i class="fas fa-scale-balanced fa-3x"></i>
+            <h1>Fundamental<br>Duties<br>Art. 51A</h1>
+        </div>
+
+        <div id="nodes-container"></div>
+    </div>
+
+    <!-- Practice Modal -->
+    <div id="practice-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title" style="color: var(--accent-gold); margin-bottom: 5px;"></h2>
+            <h4 id="modal-subtitle" style="color: #64748b; margin-bottom: 20px;"></h4>
+            <p style="margin-bottom: 20px; color: #94a3b8; font-size: 0.9rem;">Type the main keywords or full text of the duty and press <b>Enter</b>.</p>
+
+            <div id="inputs-container"></div>
+
+            <button class="btn-submit" onclick="finalizeSubmission()">Submit & Close</button>
+        </div>
+    </div>
+
+    <script>
+        const dutiesData = [
+            { id: 0, article: "51A(a)", letter: "a", title: "Respect the Constitution", duty: "To abide by the Constitution and respect its ideals and institutions, the National Flag and the National Anthem." },
+            { id: 1, article: "51A(b)", letter: "b", title: "Freedom Struggle Ideals", duty: "To cherish and follow the noble ideals which inspired our national struggle for freedom." },
+            { id: 2, article: "51A(c)", letter: "c", title: "Sovereignty, Unity & Integrity", duty: "To uphold and protect the sovereignty, unity and integrity of India." },
+            { id: 3, article: "51A(d)", letter: "d", title: "Defend the Country", duty: "To defend the country and render national service when called upon to do so." },
+            { id: 4, article: "51A(e)", letter: "e", title: "Promote Harmony", duty: "To promote harmony and the spirit of common brotherhood amongst all the people of India transcending religious, linguistic, regional or sectional diversities; to renounce practices derogatory to the dignity of women." },
+            { id: 5, article: "51A(f)", letter: "f", title: "Preserve Heritage", duty: "To value and preserve the rich heritage of our composite culture." },
+            { id: 6, article: "51A(g)", letter: "g", title: "Protect Environment", duty: "To protect and improve the natural environment including forests, lakes, rivers and wildlife, and to have compassion for living creatures." },
+            { id: 7, article: "51A(h)", letter: "h", title: "Scientific Temper", duty: "To develop the scientific temper, humanism and the spirit of inquiry and reform." },
+            { id: 8, article: "51A(i)", letter: "i", title: "Safeguard Public Property", duty: "To safeguard public property and to abjure violence." },
+            { id: 9, article: "51A(j)", letter: "j", title: "Strive for Excellence", duty: "To strive towards excellence in all spheres of individual and collective activity so that the nation constantly rises to higher levels of endeavour and achievement." },
+            { id: 10, article: "51A(k)", letter: "k", title: "Provide Education", duty: "Who is a parent or guardian, to provide opportunities for education to his child or ward between the age of six and fourteen years." }
+        ];
+
+        let currentActiveDuty = null;
+        let correctAnswersForSession = new Set();
+
+        function init() {
+            const container = document.getElementById('nodes-container');
+            const svg = document.getElementById('line-canvas');
+            const radius = 38; 
+
+            dutiesData.forEach((item, index) => {
+                const angle = (index * (360 / dutiesData.length)) * (Math.PI / 180);
+                const x = 50 + radius * Math.cos(angle);
+                const y = 50 + radius * Math.sin(angle);
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", "50%"); line.setAttribute("y1", "50%");
+                line.setAttribute("x2", `${x}%`); line.setAttribute("y2", `${y}%`);
+                svg.appendChild(line);
+
+                const node = document.createElement('div');
+                node.className = 'duty-node';
+                node.style.left = `${x}%`;
+                node.style.top = `${y}%`;
+                node.innerHTML = `
+                    <div class="node-icon">${item.letter.toUpperCase()}</div>
+                    <div class="duty-info">
+                        <span class="duty-article">${item.article}</span>
+                        <span class="score-badge" id="badge-${item.id}">0/1</span>
+                    </div>
+                `;
+                node.onclick = () => openPractice(item.id);
+                container.appendChild(node);
+            });
+        }
+
+        function openPractice(id) {
+            currentActiveDuty = dutiesData.find(d => d.id === id);
+            const modal = document.getElementById('practice-modal');
+            const container = document.getElementById('inputs-container');
+
+            document.getElementById('modal-title').innerText = currentActiveDuty.title;
+            document.getElementById('modal-subtitle').innerText = "Article " + currentActiveDuty.article;
+            container.innerHTML = '';
+            correctAnswersForSession.clear();
+
+            const group = document.createElement('div');
+            group.className = 'input-group';
+            group.innerHTML = `
+                <textarea class="p-input" placeholder="Recall the duty here..." 
+                       onkeypress="handleKeyPress(event, this)"></textarea>
+                <div class="status-icon"></div>
+            `;
+            container.appendChild(group);
+
+            modal.style.display = 'flex';
+        }
+
+        function handleKeyPress(e, inputEl) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const userVal = inputEl.value.toLowerCase().trim();
+                const iconContainer = inputEl.nextElementSibling;
+
+                if (userVal === "" || userVal.length < 5) return;
+
+                const officialText = currentActiveDuty.duty.toLowerCase();
+                
+                // Logic: Match if user provides enough identifying keywords from the duty
+                // (Matches if user input is contained in official text or vice-versa)
+                const isCorrect = officialText.includes(userVal) || userVal.includes(officialText);
+
+                if (isCorrect) {
+                    inputEl.className = 'correct';
+                    iconContainer.innerHTML = '✅';
+                    correctAnswersForSession.add(currentActiveDuty.id);
+                    inputEl.value = currentActiveDuty.duty; // Show full text on success
+                    inputEl.disabled = true;
+                } else {
+                    inputEl.classList.add('wrong');
+                    iconContainer.innerHTML = '❌';
+                    setTimeout(() => {
+                        inputEl.classList.remove('wrong');
+                        iconContainer.innerHTML = '';
+                    }, 1000);
+                }
+            }
+        }
+
+        function finalizeSubmission() {
+            const score = correctAnswersForSession.size;
+            document.getElementById(`badge-${currentActiveDuty.id}`).innerText = `${score}/1`;
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('practice-modal').style.display = 'none';
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
