@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Mastery | Professional Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #05070a;
+            --card-inner: rgba(22, 27, 34, 0.8);
+            --accent: #58a6ff;
+            --success: #238636;
+            --fail: #f85149;
+            --warn: #d29922;
+            --text: #e6edf3;
+            --border: rgba(48, 54, 61, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(88, 166, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(35, 134, 54, 0.05) 0%, transparent 40%);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- Floating Background Elements --- */
+        .bg-icon {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.03);
+            z-index: -1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            from {
+                transform: rotate(0deg) translate(50px) rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg) translate(50px) rotate(-360deg);
+            }
+        }
+
+        /* --- Main Layout --- */
+        #app {
+            width: 95%;
+            max-width: 550px;
+            z-index: 1;
+        }
+
+        .quiz-card {
+            background: var(--card-inner);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .category-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .art-number {
+            font-size: 7rem;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1;
+            color: #fff;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+        }
+
+        /* --- Alignment Fix for Tries --- */
+        .tries-row {
+            display: flex;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #21262d;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: var(--warn);
+            border-color: var(--warn);
+            box-shadow: 0 0 10px var(--warn);
+        }
+
+        .dot.spent {
+            background: var(--fail);
+            border-color: var(--fail);
+        }
+
+        /* --- Input Alignment --- */
+        .input-wrapper {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(1, 4, 9, 0.6);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.15);
+            background: #010409;
+        }
+
+        .feedback-area {
+            height: 30px;
+            margin-top: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer {
+            width: 100%;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            color: #8b949e;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* --- Results Screen --- */
+        #results {
+            display: none;
+            animation: zoomIn 0.5s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .score-display {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+
+        button {
+            background: var(--accent);
+            color: #05070a;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            margin-top: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(88, 166, 255, 0.4);
+        }
+
+        /* --- Wrong List Styling --- */
+        .wrong-list-container {
+            width: 100%;
+            margin: 20px 0;
+            text-align: left;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+        }
+
+        .wrong-item {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(248, 81, 73, 0.1);
+            border-left: 3px solid var(--fail);
+            border-radius: 4px;
+        }
+
+        .wrong-item span {
+            color: var(--fail);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* Logic Animations */
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-10px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <i class="fas fa-balance-scale bg-icon" style="top:10%; left:10%; font-size:4rem;"></i>
+    <i class="fas fa-gavel bg-icon" style="top:70%; left:80%; font-size:5rem; animation-delay: -2s;"></i>
+    <i class="fas fa-book-law bg-icon" style="top:40%; left:85%; font-size:3rem; animation-delay: -5s;"></i>
+    <i class="fas fa-landmark bg-icon" style="top:80%; left:15%; font-size:6rem; animation-delay: -8s;"></i>
+
+    <div id="app">
+        <!-- Main Quiz View -->
+        <div id="quiz-screen" class="quiz-card">
+            <div class="category-tag">Constitution Article</div>
+            <div id="art-num" class="art-number">--</div>
+
+            <div class="tries-row">
+                <div id="dot-1" class="dot active"></div>
+                <div id="dot-2" class="dot active"></div>
+            </div>
+
+            <div class="input-wrapper">
+                <input type="text" id="user-input" placeholder="Recall the subject..." autocomplete="off">
+            </div>
+
+            <div id="feedback" class="feedback-area"></div>
+
+            <div class="footer">
+                <span id="progress-text">Question 0 / 0</span>
+                <span id="score-text">Score: 0</span>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="results" class="quiz-card">
+            <i class="fas fa-trophy" style="font-size: 4rem; color: var(--warn); margin-bottom: 10px;"></i>
+            <h2 style="font-weight: 800; letter-spacing: 1px;">TRAINING COMPLETE</h2>
+            <div class="score-display" id="final-score">0</div>
+            <p id="final-comment" style="color: #8b949e; margin-bottom: 10px;"></p>
+
+            <div id="wrong-answers-container" class="wrong-list-container" style="display:none;">
+                <p
+                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--fail); margin-bottom: 10px;">
+                    Review Mistakes</p>
+                <div id="wrong-list"></div>
+                <button onclick="practiceWrong()" style="background: var(--warn);">Practice Mistakes</button>
+            </div>
+
+            <button onclick="location.reload()">New Full Session</button>
+        </div>
+    </div>
+
+    <script>
+        const ARTICLE_DATA = [
+            { art: "52", sub: "The President of India" },
+            { art: "53", sub: "Executive power of the Union" },
+            { art: "54", sub: "Election of President" },
+            { art: "55", sub: "Manner of election of president" },
+            { art: "56", sub: "Term of office of President" },
+            { art: "57", sub: "Eligibility for re-election" },
+            { art: "58", sub: "Qualifications for election as president" },
+            { art: "59", sub: "Conditions of president's office" },
+            { art: "60", sub: "Oath or affirmation by the President" },
+            { art: "61", sub: "Procedure for impeachment of the president" },
+            { art: "62", sub: "Time of holding election to fill vacancy in the office of president" },
+            { art: "65", sub: "Vice-President to act as President to discharge his functions" },
+            { art: "71", sub: "Matters relating to the election of President and Vice-President" },
+            { art: "72", sub: "Pardoning power of President" },
+            { art: "74", sub: "COM with PM as head to aid and advise the President" },
+            { art: "75", sub: "Other provisions as to ministers like appointment, term, salaries etc." },
+            { art: "76", sub: "Attorney-General of India" },
+            { art: "77", sub: "Conduct of Business of the Government of India" },
+            { art: "78", sub: "Duties of PM in respect to furnishing of information to the President" },
+            { art: "78(c)", sub: "Individual decision of a minister can be sent for collective consideration of COM by President" },
+            { art: "85", sub: "Sessions of Parliament, Prorogation and dissolution" },
+            { art: "111", sub: "Assent to bills passed by the Parliament" },
+            { art: "112", sub: "Union Budget (Annual Financial Statement)" },
+            { art: "123", sub: "Ordinance power of President" },
+            { art: "143", sub: "Presidential reference to Supreme court" },
+            { art: "63", sub: "The Vice-President of India" },
+            { art: "64", sub: "The Vice-President to be ex-officio chairman of Rajya Sabha" },
+            { art: "65", sub: "Vice-President to act as President to discharge his functions" },
+            { art: "66", sub: "Election of Vice-President" },
+            { art: "67", sub: "Term of office of Vice-President" },
+            { art: "67(b)", sub: "Removal of Vice-President" },
+            { art: "68", sub: "Time of holding election to fill vacancy in the office of Vice-President and the term of office of person elected to fill casual vacancy" },
+            { art: "69", sub: "Oath or affirmation by the Vice-President" },
+            { art: "70", sub: "Discharge of President's functions in other contingencies" },
+            { art: "71", sub: "Matters relating to the election of President and Vice-President" },
+            { art: "74", sub: "COM with PM as head to aid and advise the President" },
+            { art: "75", sub: "Other provisions as to ministers like appointment, term, salaries etc." },
+            { art: "75(2)", sub: "Each minister is individually responsible to the President" },
+            { art: "75(3)", sub: "COM is collectively responsible to Lok sabha" },
+            { art: "75(4)", sub: "Oath to ministers of GOI administered by President" },
+            { art: "77", sub: "Conduct of business of the Government of India" },
+            { art: "78", sub: "Duties of PM in respect to furnishing of information to the President" },
+            { art: "88", sub: "Rights of Ministers and AGI as respects the houses" },
+            { art: "79", sub: "Constitution of Parliament" },
+            { art: "80", sub: "Composition of Council of States" },
+            { art: "81", sub: "Composition of House of the People" },
+            { art: "82", sub: "Readjustment after each census" },
+            { art: "83", sub: "Duration of houses of Parliament" },
+            { art: "84", sub: "Qualifications for membership of Parliament" },
+            { art: "85", sub: "Sessions of Parliament, prorogation and dissolution" },
+            { art: "86", sub: "Right of President to address and send messages to houses" },
+            { art: "87", sub: "Special address by the President" },
+            { art: "88", sub: "Rights of ministers and AGI as respects houses" },
+            { art: "89", sub: "The Chairman and Deputy Chairman of the council of states" },
+            { art: "90", sub: "Vacation and resignation of, and removal from, the office of Deputy Chairman" },
+            { art: "91", sub: "Power of the Deputy Chairman or other person to perform the duties of the office of, or to act as, Chairman" },
+            { art: "92", sub: "The Chairman or the Deputy Chairman not to preside while a resolution for his removal from office is under consideration" },
+            { art: "93", sub: "The Speaker and Deputy Speaker of the House of People" },
+            { art: "94", sub: "Vacation and resignation of, and removal from, the offices of Speaker and Deputy Speaker" },
+            { art: "94(c)", sub: "Removal of Speaker" },
+            { art: "95", sub: "Power of the Deputy Speaker or other person to perform the duties of the office of, or to act as, Speaker" },
+            { art: "96", sub: "The Speaker or the Deputy Speaker not to preside while a resolution for his removal from office is under Consideration" },
+            { art: "97", sub: "Salaries and allowances of the Chairman, Deputy Chairman, Speaker and Deputy Speaker" },
+            { art: "98", sub: "Secretariat of Parliament" }
+        ];
+
+        let quizDeck = [];
+        let currentIndex = 0;
+        let score = 0;
+        let attempts = 0;
+        let wrongAnswers = [];
+
+        const input = document.getElementById('user-input');
+        const feedback = document.getElementById('feedback');
+
+        function init() {
+            const unique = new Map();
+            ARTICLE_DATA.forEach(i => { if (!unique.has(i.art)) unique.set(i.art, i); });
+            quizDeck = Array.from(unique.values()).sort(() => Math.random() - 0.5);
+            renderQuestion();
+        }
+
+        function normalize(str) {
+            return str.toLowerCase().replace(/\b(a|an|the)\b/g, "").replace(/[,\-\s\.\(\)\:\"\'\;\_]/g, "").trim();
+        }
+
+        function renderQuestion() {
+            if (currentIndex >= quizDeck.length) return showResults();
+
+            const item = quizDeck[currentIndex];
+            document.getElementById('art-num').innerText = item.art;
+            document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${quizDeck.length}`;
+            document.getElementById('score-text').innerText = `Score: ${score}`;
+
+            input.value = "";
+            input.disabled = false;
+            input.focus();
+
+            attempts = 0;
+            feedback.innerText = "";
+            updateDots();
+        }
+
+        function updateDots() {
+            document.getElementById('dot-1').className = attempts >= 1 ? 'dot spent' : 'dot active';
+            document.getElementById('dot-2').className = attempts >= 2 ? 'dot spent' : 'dot active';
+        }
+
+        input.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const userAns = normalize(input.value);
+                const correctAns = normalize(quizDeck[currentIndex].sub);
+
+                if (userAns === correctAns) {
+                    confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#58a6ff', '#238636'] });
+                    feedback.innerHTML = `<i class="fas fa-check-circle"></i> &nbsp; PERFECT MATCH`;
+                    feedback.style.color = "var(--success)";
+                    score++;
+                    input.disabled = true;
+                    setTimeout(nextQuestion, 1200);
+                } else {
+                    attempts++;
+                    input.classList.add('shake');
+                    setTimeout(() => input.classList.remove('shake'), 400);
+                    updateDots();
+
+                    if (attempts === 1) {
+                        feedback.innerHTML = `<i class="fas fa-exclamation-triangle"></i> &nbsp; TRY AGAIN (1 LEFT)`;
+                        feedback.style.color = "var(--warn)";
+                    } else {
+                        feedback.innerText = "INCORRECT";
+                        feedback.style.color = "var(--fail)";
+                        // Push to wrong answers pool
+                        wrongAnswers.push(quizDeck[currentIndex]);
+                        input.disabled = true;
+                        setTimeout(nextQuestion, 2000);
+                    }
+                }
+            }
+        };
+
+        function nextQuestion() {
+            currentIndex++;
+            renderQuestion();
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('results').style.display = 'flex';
+            document.getElementById('final-score').innerText = `${Math.round((score / quizDeck.length) * 100)}%`;
+            document.getElementById('final-comment').innerText = `Accuracy: ${score} out of ${quizDeck.length} correct`;
+
+            // Handle wrong answers list
+            const wrongContainer = document.getElementById('wrong-answers-container');
+            const wrongList = document.getElementById('wrong-list');
+
+            if (wrongAnswers.length > 0) {
+                wrongContainer.style.display = 'block';
+                wrongList.innerHTML = wrongAnswers.map(item => `
+                <div class="wrong-item">
+                    <span>Art. ${item.art}:</span> ${item.sub}
+                </div>
+            `).join('');
+            } else {
+                wrongContainer.style.display = 'none';
+            }
+        }
+
+        function practiceWrong() {
+            // Prepare deck with only wrong answers
+            quizDeck = [...wrongAnswers].sort(() => Math.random() - 0.5);
+            wrongAnswers = []; // Clear for new round
+            currentIndex = 0;
+            score = 0;
+
+            // UI Reset
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'flex';
+            renderQuestion();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

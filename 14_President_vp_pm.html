@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Articles | Mastery Hub</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #05070a;
+            --card-bg: #111827;
+            --accent: #fbbf24;
+            --blue: #38bdf8;
+            --correct: #22c55e;
+            --wrong: #ef4444;
+            --text: #f1f5f9;
+            --marathon: #a855f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 20%);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #app {
+            width: 95%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* --- Home Page Decorations --- */
+        .symbol-bg {
+            position: absolute;
+            font-size: 10rem;
+            color: rgba(251, 191, 36, 0.02);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- Mode Selector --- */
+        .mode-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #111827;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: #64748b;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+        }
+
+        .mode-btn.active {
+            background: var(--blue);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .mode-btn.active#btn-marathon {
+            background: var(--marathon);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        /* --- Menu Screen --- */
+        .category-card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 15px;
+            border: 1px solid #1e293b;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .category-card:hover {
+            border-color: var(--accent);
+            background: #1e293b;
+            transform: translateY(-2px);
+        }
+
+        .category-card.special-card {
+            border: 1px dashed var(--marathon);
+        }
+
+        .category-card.special-card:hover {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: var(--marathon);
+        }
+
+        .category-card i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .category-card.special-card i {
+            color: var(--marathon);
+        }
+
+        /* --- Random Mode Layout --- */
+        .quiz-container {
+            display: none;
+        }
+
+        .article-box {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            padding: 40px;
+            border-radius: 24px;
+            border: 2px solid #334155;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .art-num-big {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+        }
+
+        .tries-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .try-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #334155;
+            transition: 0.3s;
+        }
+
+        .try-dot.filled {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        }
+
+        .try-dot.used {
+            background: var(--wrong);
+            border-color: var(--wrong);
+        }
+
+        /* --- Chronological Grid (Small Circles) --- */
+        #chrono-view {
+            display: none;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            max-height: 72vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .art-bubble {
+            aspect-ratio: 1;
+            background: #111827;
+            border: 2px solid #334155;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .art-bubble:hover {
+            border-color: var(--blue);
+            transform: scale(1.1);
+            background: #1e293b;
+        }
+
+        .art-bubble.done {
+            background: var(--correct);
+            border-color: var(--correct);
+            color: black;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+        }
+
+        /* --- Result Screen --- */
+        #result-screen {
+            display: none;
+            animation: zoomIn 0.5s;
+        }
+
+        .score-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            padding: 25px;
+            border-radius: 15px;
+            background: #111827;
+            min-width: 140px;
+            border: 1px solid #1e293b;
+        }
+
+        .stat-item.c {
+            border-bottom: 4px solid var(--correct);
+        }
+
+        .stat-item.w {
+            border-bottom: 4px solid var(--wrong);
+        }
+
+        /* --- Shared Input Field --- */
+        input {
+            width: 100%;
+            padding: 18px;
+            background: #020617;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+        }
+
+        /* --- Modal --- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #334155;
+        }
+
+        /* --- Animations --- */
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            75% {
+                transform: translateX(8px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <i class="fas fa-landmark symbol-bg" style="top:-60px; left:-60px;"></i>
+        <i class="fas fa-balance-scale symbol-bg" style="bottom:-60px; right:-60px;"></i>
+
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <div style="margin-bottom: 35px;">
+                <i class="fas fa-scroll"
+                    style="font-size: 3.5rem; color: var(--accent); margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(251,191,36,0.3));"></i>
+                <h1 style="color: var(--accent); letter-spacing: 3px; font-weight: 900; font-size: 2.2rem;">EXECUTIVE
+                    BRANCH</h1>
+                <p style="color: #64748b; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px;">
+                    Constitutional Article Training</p>
+            </div>
+
+            <div class="mode-container">
+                <button class="mode-btn active" id="btn-chrono" onclick="setMode('chrono')">Chronological</button>
+                <button class="mode-btn" id="btn-random" onclick="setMode('random')">Random (2 Tries)</button>
+                <button class="mode-btn" id="btn-marathon" onclick="setMode('marathon')">Marathon (1 Try)</button>
+            </div>
+
+            <div id="menu-list"></div>
+        </div>
+
+        <!-- Random Quiz View -->
+        <div id="random-view" class="quiz-container">
+            <div class="article-box">
+                <h2 id="rand-cat-title"
+                    style="color: var(--blue); font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 15px; opacity: 0.8;">
+                    SUBJECT</h2>
+                <div class="art-num-big" id="rand-art-display">52</div>
+
+                <div class="tries-indicator" id="tries-row">
+                    <div id="try-1" class="try-dot"></div>
+                    <div id="try-2" class="try-dot"></div>
+                </div>
+
+                <input type="text" id="rand-input" placeholder="Type article subject..." autocomplete="off">
+                <div id="rand-feedback" style="margin-top:15px; height:20px; font-weight:bold; font-size: 0.9rem;">
+                </div>
+
+                <div
+                    style="display:flex; justify-content: space-between; margin-top:35px; font-size:0.8rem; color:#64748b; border-top:1px solid #1e293b; padding-top: 15px;">
+                    <span id="rand-count">Question 1/25</span>
+                    <span id="rand-score-live">Correct: 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chronological Grid View -->
+        <div id="chrono-view">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <button onclick="location.reload()"
+                    style="background:transparent; border:1px solid #334155; color:white; padding:10px 18px; border-radius:10px; cursor:pointer;"><i
+                        class="fas fa-chevron-left"></i></button>
+                <h2 id="chrono-cat-title" style="color: var(--accent); font-weight: 800;">Subject</h2>
+                <div id="chrono-stats"
+                    style="background:rgba(56,189,248,0.1); padding:6px 15px; border-radius:20px; color:var(--blue); font-size:0.9rem; font-weight: bold;">
+                    0/0</div>
+            </div>
+            <div class="grid-layout" id="chrono-grid"></div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen">
+            <i class="fas fa-trophy" style="font-size: 4.5rem; color: var(--accent); margin-bottom: 25px;"></i>
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px; font-weight: 900;">Session Summary</h1>
+            <div class="score-stats">
+                <div class="stat-item c">
+                    <div
+                        style="font-size: 0.75rem; color: var(--correct); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">
+                        CORRECT</div>
+                    <div id="final-correct" style="font-size: 2.5rem; font-weight: 900;">0</div>
+                </div>
+                <div class="stat-item w">
+                    <div
+                        style="font-size: 0.75rem; color: var(--wrong); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">
+                        WRONG</div>
+                    <div id="final-wrong" style="font-size: 2.5rem; font-weight: 900;">0</div>
+                </div>
+            </div>
+            <button onclick="location.reload()"
+                style="margin-top:45px; background:var(--accent); color:black; border:none; padding:18px 50px; border-radius:15px; font-weight:900; cursor:pointer; letter-spacing: 1px;">PLAY
+                AGAIN</button>
+        </div>
+
+        <!-- Chrono Modal -->
+        <div id="chrono-modal" class="modal">
+            <div class="modal-content">
+                <span id="modal-art-num"
+                    style="font-size: 3.5rem; font-weight: 900; color: var(--accent); display: block; margin-bottom: 15px;">52</span>
+                <input type="text" id="chrono-input" placeholder="Type the subject..." autocomplete="off">
+                <p id="chrono-feedback" style="margin-top: 20px; font-weight: bold;"></p>
+                <button onclick="closeModal()"
+                    style="margin-top:25px; background:transparent; border:none; color:#475569; cursor:pointer; font-weight: bold;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            "President": [
+                { art: "52", sub: "The President of India" },
+                { art: "53", sub: "Executive power of the Union" },
+                { art: "54", sub: "Election of President" },
+                { art: "55", sub: "Manner of election of president" },
+                { art: "56", sub: "Term of office of President" },
+                { art: "57", sub: "Eligibility for re-election" },
+                { art: "58", sub: "Qualifications for election as president" },
+                { art: "59", sub: "Conditions of president's office" },
+                { art: "60", sub: "Oath or affirmation by the President" },
+                { art: "61", sub: "Procedure for impeachment of the president" },
+                { art: "62", sub: "Time of holding election to fill vacancy in the office of president" },
+                { art: "65", sub: "Vice-President to act as President to discharge his functions" },
+                { art: "71", sub: "Matters relating to the election of President and Vice-President" },
+                { art: "72", sub: "Pardoning power of President" },
+                { art: "74", sub: "COM with PM as head to aid and advise the President" },
+                { art: "75", sub: "Other provisions as to ministers like appointment, term, salaries etc." },
+                { art: "76", sub: "Attorney-General of India" },
+                { art: "77", sub: "Conduct of Business of the Government of India" },
+                { art: "78", sub: "Duties of PM in respect to furnishing of information to the President" },
+                { art: "78(c)", sub: "Individual decision of a minister can be sent for collective consideration of COM by President" },
+                { art: "85", sub: "Sessions of Parliament, Prorogation and dissolution" },
+                { art: "111", sub: "Assent to bills passed by the Parliament" },
+                { art: "112", sub: "Union Budget (Annual Financial Statement)" },
+                { art: "123", sub: "Ordinance power of President" },
+                { art: "143", sub: "Presidential reference to Supreme court" }
+            ],
+            "Vice-President": [
+                { art: "63", sub: "The Vice-President of India" },
+                { art: "64", sub: "The Vice-President to be ex-officio chairman of Rajya Sabha" },
+                { art: "65", sub: "Vice-President to act as President to discharge his functions" },
+                { art: "66", sub: "Election of Vice-President" },
+                { art: "67", sub: "Term of office of Vice-President" },
+                { art: "67(b)", sub: "Removal of Vice-President" },
+                { art: "68", sub: "Time of holding election to fill vacancy in the office of Vice-President and the term of office of person elected to fill casual vacancy" },
+                { art: "69", sub: "Oath or affirmation by the Vice-President" },
+                { art: "70", sub: "Discharge of President's functions in other contingencies" },
+                { art: "71", sub: "Matters relating to the election of President and Vice-President" }
+            ],
+            "Prime Minister": [
+                { art: "74", sub: "COM with PM as head to aid and advise the President" },
+                { art: "75", sub: "Other provisions as to ministers like appointment, term, salaries etc." },
+                { art: "75(2)", sub: "Each minister is individually responsible to the President" },
+                { art: "75(3)", sub: "COM is collectively responsible to Lok sabha" },
+                { art: "75(4)", sub: "Oath to ministers of GOI administered by President" },
+                { art: "77", sub: "Conduct of business of the Government of India" },
+                { art: "78", sub: "Duties of PM in respect to furnishing of information to the President" },
+                { art: "88", sub: "Rights of Ministers and AGI as respects the houses" }
+            ]
+        };
+
+        let currentSet = [];
+        let currentIndex = 0;
+        let scoreCorrect = 0;
+        let scoreWrong = 0;
+        let guessCount = 0;
+        let activeMode = 'chrono';
+        let selectedItem = null;
+
+        function init() {
+            const list = document.getElementById('menu-list');
+            list.innerHTML = ""; // Clear list
+            
+            // Render specific categories
+            Object.keys(data).forEach(cat => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.innerHTML = `<div><h2 style="font-size:1.1rem; font-weight: 800;">${cat}</h2><p style="font-size:0.75rem; color:#64748b; font-weight: bold;">${data[cat].length} Articles</p></div><i class="fas fa-arrow-right"></i>`;
+                card.onclick = () => startQuiz(cat);
+                list.appendChild(card);
+            });
+
+            // Add Master Marathon Card
+            const totalArticles = Object.values(data).flat().length;
+            const mCard = document.createElement('div');
+            mCard.className = 'category-card special-card';
+            mCard.innerHTML = `<div><h2 style="font-size:1.1rem; font-weight: 800; color: var(--marathon);">Master Marathon</h2><p style="font-size:0.75rem; color:#64748b; font-weight: bold;">All Articles (Unique)</p></div><i class="fas fa-bolt"></i>`;
+            mCard.onclick = () => startQuiz('ALL_CATEGORIES');
+            list.appendChild(mCard);
+        }
+
+        function setMode(m) {
+            activeMode = m;
+            document.getElementById('btn-chrono').classList.toggle('active', m === 'chrono');
+            document.getElementById('btn-random').classList.toggle('active', m === 'random');
+            document.getElementById('btn-marathon').classList.toggle('active', m === 'marathon');
+        }
+
+        function normalize(str) {
+            return str.toLowerCase().replace(/\b(a|an|the)\b/g, "").replace(/[,\-\s\.\(\)\:\"\'\;\_]/g, "").trim();
+        }
+
+        function celebrate() {
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#fbbf24', '#ffffff', '#22c55e', '#38bdf8'] });
+        }
+
+        function startQuiz(cat) {
+            if(cat === 'ALL_CATEGORIES') {
+                // Task: Filter only unique articles based on the 'art' number
+                const all = Object.values(data).flat();
+                const uniqueMap = new Map();
+                all.forEach(item => {
+                    if (!uniqueMap.has(item.art)) {
+                        uniqueMap.set(item.art, item);
+                    }
+                });
+                currentSet = Array.from(uniqueMap.values());
+            } else {
+                currentSet = [...data[cat]];
+            }
+
+            document.getElementById('start-screen').style.display = 'none';
+
+            if (activeMode === 'random' || activeMode === 'marathon') {
+                currentSet.sort(() => Math.random() - 0.5);
+                document.getElementById('random-view').style.display = 'block';
+                document.getElementById('rand-cat-title').innerText = (cat === 'ALL_CATEGORIES') ? "EXECUTIVE MARATHON" : cat;
+                
+                // For marathon mode, we only show 1 try dot
+                document.getElementById('try-2').style.display = (activeMode === 'marathon') ? 'none' : 'block';
+                
+                currentIndex = 0; scoreCorrect = 0; scoreWrong = 0;
+                showRandomQuestion();
+            } else {
+                document.getElementById('chrono-view').style.display = 'block';
+                document.getElementById('chrono-cat-title').innerText = cat;
+                renderGrid();
+            }
+        }
+
+        function showRandomQuestion() {
+            guessCount = 0;
+            const item = currentSet[currentIndex];
+            document.getElementById('rand-art-display').innerText = item.art;
+            document.getElementById('rand-input').value = "";
+            document.getElementById('rand-input').disabled = false;
+            document.getElementById('rand-input').focus();
+            document.getElementById('rand-feedback').innerText = "";
+            document.getElementById('try-1').className = 'try-dot filled';
+            document.getElementById('try-2').className = 'try-dot filled';
+            updateRandomUI();
+        }
+
+        document.getElementById('rand-input').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('rand-input');
+                const userVal = normalize(input.value);
+                const correctVal = normalize(currentSet[currentIndex].sub);
+
+                if (userVal === correctVal) {
+                    celebrate();
+                    scoreCorrect++;
+                    document.getElementById('rand-feedback').innerText = "✓ Perfect Match!";
+                    document.getElementById('rand-feedback').style.color = "var(--correct)";
+                    input.disabled = true;
+                    setTimeout(nextRandom, 1000);
+                } else {
+                    guessCount++;
+                    input.classList.add('shake');
+                    setTimeout(() => input.classList.remove('shake'), 500);
+
+                    if (activeMode === 'marathon') {
+                        // Marathon Mode: 1 try only
+                        document.getElementById('try-1').className = 'try-dot used';
+                        scoreWrong++;
+                        document.getElementById('rand-feedback').innerText = "Wrong! Moving to next...";
+                        document.getElementById('rand-feedback').style.color = "var(--wrong)";
+                        input.disabled = true;
+                        setTimeout(nextRandom, 1500);
+                    } else {
+                        // Standard Random Mode: 2 tries
+                        if (guessCount === 1) {
+                            document.getElementById('try-1').className = 'try-dot used';
+                            document.getElementById('rand-feedback').innerText = "First try wrong! One left.";
+                            document.getElementById('rand-feedback').style.color = "var(--accent)";
+                        } else {
+                            document.getElementById('try-2').className = 'try-dot used';
+                            scoreWrong++;
+                            document.getElementById('rand-feedback').innerText = "Incorrect. Next article...";
+                            document.getElementById('rand-feedback').style.color = "var(--wrong)";
+                            input.disabled = true;
+                            setTimeout(nextRandom, 1500);
+                        }
+                    }
+                }
+            }
+        };
+
+        function nextRandom() {
+            currentIndex++;
+            if (currentIndex < currentSet.length) showRandomQuestion();
+            else showResults();
+        }
+
+        function updateRandomUI() {
+            document.getElementById('rand-count').innerText = `Question ${currentIndex + 1}/${currentSet.length}`;
+            document.getElementById('rand-score-live').innerText = `Correct: ${scoreCorrect}`;
+        }
+
+        function showResults() {
+            document.getElementById('random-view').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('final-correct').innerText = scoreCorrect;
+            document.getElementById('final-wrong').innerText = scoreWrong;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('chrono-grid');
+            grid.innerHTML = "";
+            currentSet.forEach((item, idx) => {
+                const bub = document.createElement('div');
+                bub.className = 'art-bubble' + (item.done ? ' done' : '');
+                bub.innerText = item.art;
+                bub.onclick = () => { if (!item.done) openChronoModal(idx); };
+                grid.appendChild(bub);
+            });
+            const doneCount = currentSet.filter(i => i.done).length;
+            document.getElementById('chrono-stats').innerText = `${doneCount} / ${currentSet.length}`;
+        }
+
+        function openChronoModal(idx) {
+            selectedItem = currentSet[idx];
+            document.getElementById('modal-art-num').innerText = selectedItem.art;
+            document.getElementById('chrono-modal').style.display = 'flex';
+            document.getElementById('chrono-input').value = "";
+            document.getElementById('chrono-feedback').innerText = "";
+            document.getElementById('chrono-input').focus();
+        }
+
+        document.getElementById('chrono-input').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('chrono-input');
+                if (normalize(input.value) === normalize(selectedItem.sub)) {
+                    celebrate();
+                    selectedItem.done = true;
+                    document.getElementById('chrono-feedback').innerText = "✓ Correct Article";
+                    document.getElementById('chrono-feedback').style.color = "var(--correct)";
+                    setTimeout(() => { closeModal(); renderGrid(); }, 800);
+                } else {
+                    input.classList.add('shake');
+                    document.getElementById('chrono-feedback').innerText = "✕ Incorrect Wording";
+                    document.getElementById('chrono-feedback').style.color = "var(--wrong)";
+                    setTimeout(() => input.classList.remove('shake'), 500);
+                }
+            }
+        };
+
+        function closeModal() { document.getElementById('chrono-modal').style.display = 'none'; }
+
+        init();
+    </script>
+</body>
+
+</html>

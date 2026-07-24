@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legislative Portal | Indian Constitution</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #080a0f;
+            --sidebar-bg: #0f1219;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent: #6366f1; /* Indigo Neon */
+            --secondary: #2dd4bf; /* Teal */
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --wrong: #f43f5e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar Navigation --- */
+        nav {
+            width: 320px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 10px;
+        }
+
+        .brand i { color: var(--accent); font-size: 1.8rem; }
+        .brand h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; letter-spacing: 1px; }
+
+        .nav-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin: 20px 0 10px 10px;
+        }
+
+        .category-item {
+            padding: 12px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .category-item:hover {
+            background: var(--glass);
+            color: var(--text-main);
+        }
+
+        .category-item.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .mode-toggle {
+            margin-top: auto;
+            background: #161b26;
+            padding: 5px;
+            border-radius: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .m-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 7px;
+            transition: 0.3s;
+        }
+
+        .m-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* --- Main Stage --- */
+        main {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        #stage {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        /* --- Home Screen Layout --- */
+        .welcome-hero {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .welcome-hero h2 { font-size: 3rem; font-family: 'Space Grotesk'; margin-bottom: 20px; }
+        .welcome-hero p { color: var(--text-dim); line-height: 1.6; }
+
+        /* --- Quiz Interface --- */
+        .quiz-card {
+            width: 100%;
+            max-width: 700px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 60px;
+            border-radius: 30px;
+            position: relative;
+        }
+
+        .art-tag {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .quiz-card input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--glass-border);
+            padding: 15px 0;
+            color: white;
+            font-size: 1.8rem;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+        .quiz-card input:focus {
+            border-color: var(--secondary);
+        }
+
+        .quiz-card input::placeholder {
+            color: #334155;
+        }
+
+        /* --- Grid Layout --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 900px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .bubble {
+            aspect-ratio: 1;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .bubble:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .bubble.completed {
+            background: var(--secondary);
+            color: var(--bg-deep);
+            border: none;
+        }
+
+        /* --- Modals --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate { animation: fadeIn 0.4s ease-out; }
+
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        /* Custom UI Elements */
+        .stats-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .live-val { color: var(--text-main); font-weight: bold; margin-left: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand">
+            <i class="fas fa-landmark-flag"></i>
+            <h1>LEX PORTAL</h1>
+        </div>
+
+        <p class="nav-label">Study Modules</p>
+        <div id="side-menu"></div>
+
+        <p class="nav-label">Challenge Mode</p>
+        <div class="mode-toggle">
+            <button class="m-btn active" id="m-chrono" onclick="updateMode('chrono')">Grid</button>
+            <button class="m-btn" id="m-random" onclick="updateMode('random')">Random</button>
+            <button class="m-btn" id="m-marathon" onclick="updateMode('marathon')">Marathon</button>
+        </div>
+    </nav>
+
+    <main>
+        <div id="stage">
+            <!-- Content will be injected here -->
+            <div class="welcome-hero animate">
+                <i class="fas fa-shield-halved" style="font-size: 4rem; color: var(--accent); margin-bottom: 20px;"></i>
+                <h2>Legislative Mastery</h2>
+                <p>Select a category from the sidebar to begin. Challenge your knowledge of the Indian Parliamentary Articles (79-123).</p>
+            </div>
+        </div>
+
+        <div class="stats-bar" id="global-stats" style="display: none;">
+            <span>PROGRESS <span id="stat-progress" class="live-val">0/0</span></span>
+            <span>ACCURACY <span id="stat-accuracy" class="live-val">100%</span></span>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modal">
+        <div class="quiz-card">
+            <div class="art-tag" id="modal-art-num">79</div>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 10px; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px;">What is the subject?</p>
+            <input type="text" id="modal-input" placeholder="Type here..." autocomplete="off">
+            <div id="modal-feedback" style="text-align: center; margin-top: 20px; font-weight: bold;"></div>
+            <button onclick="closeModal()" style="display:block; margin: 30px auto 0; background:transparent; border:none; color:var(--text-dim); cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            "General": [
+                { art: "79", sub: "Constitution of Parliament" },
+                { art: "80", sub: "Composition of Council of States" },
+                { art: "81", sub: "Composition of House of the People" },
+                { art: "82", sub: "Readjustment after each census" },
+                { art: "83", sub: "Duration of houses of Parliament" },
+                { art: "84", sub: "Qualifications for membership of Parliament" },
+                { art: "85", sub: "Sessions of Parliament, prorogation and dissolution" },
+                { art: "86", sub: "Right of President to address and send messages to houses" },
+                { art: "87", sub: "Special address by the President" },
+                { art: "88", sub: "Rights of ministers and AGI as respects houses" }
+            ],
+            "Officers": [
+                { art: "89", sub: "The Chairman and Deputy Chairman of the council of states" },
+                { art: "90", sub: "Vacation and resignation of, and removal from, the office of Deputy Chairman" },
+                { art: "91", sub: "Power of the Deputy Chairman or other person to perform the duties of the office of, or to act as, Chairman" },
+                { art: "92", sub: "The Chairman or the Deputy Chairman not to preside while a resolution for his removal from office is under consideration" },
+                { art: "93", sub: "The Speaker and Deputy Speaker of the House of People" },
+                { art: "94", sub: "Vacation and resignation of, and removal from, the offices of Speaker and Deputy Speaker" },
+                { art: "95", sub: "Power of the Deputy Speaker or other person to perform the duties of the office of, or to act as, Speaker" },
+                { art: "96", sub: "The Speaker or the Deputy Speaker not to preside while a resolution for his removal from office is under Consideration" },
+                { art: "97", sub: "Salaries and allowances of the Chairman, Deputy Chairman, Speaker and Deputy Speaker" },
+                { art: "98", sub: "Secretariat of Parliament" }
+            ],
+            "Conduct & Disq.": [
+                { art: "99", sub: "Oath or affirmation by members" },
+                { art: "100", sub: "Voting in houses, power of houses to act notwithstanding vacancies and quorum" },
+                { art: "101", sub: "Vacation of seats" },
+                { art: "102", sub: "Disqualifications for membership" },
+                { art: "103", sub: "Decision on questions as to disqualifications of members" },
+                { art: "104", sub: "Penalty for sitting and voting before making oath or affirmation under Article 99" }
+            ],
+            "Procedures": [
+                { art: "105", sub: "Powers, Privileges, etc., of the houses of Parliament" },
+                { art: "107", sub: "Provisions as to introduction and passing of bills" },
+                { art: "108", sub: "Joint sitting of both houses in certain cases" },
+                { art: "109", sub: "Special procedure in respect of Money bills" },
+                { art: "110", sub: "Definition of Money Bills" },
+                { art: "111", sub: "Assent to bills" }
+            ],
+            "Finance": [
+                { art: "112", sub: "Annual Financial Statement" },
+                { art: "113", sub: "Procedure in Parliament with respect to estimates" },
+                { art: "114", sub: "Appropriation bills" },
+                { art: "115", sub: "Supplementary, Additional or excess grants" },
+                { art: "116", sub: "Votes on account, votes of credit and exceptional grants" },
+                { art: "117", sub: "Special provisions as to finance bills" }
+            ],
+            "General Procedure": [
+                { art: "118", sub: "Rules of Procedure" },
+                { art: "120", sub: "Language to be used in Parliament" },
+                { art: "121", sub: "Restriction on discussion in Parliament" },
+                { art: "122", sub: "Courts not to inquire into proceedings of Parliament" },
+                { art: "123", sub: "Power of President to promulgate ordinances" }
+            ]
+        };
+
+        let activeMode = 'chrono';
+        let currentCategory = '';
+        let currentSet = [];
+        let currentIndex = 0;
+        let score = { correct: 0, wrong: 0 };
+        let selectedItem = null;
+
+        function initSidebar() {
+            const menu = document.getElementById('side-menu');
+            Object.keys(data).forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'category-item';
+                div.innerHTML = `<span>${cat}</span><i class="fas fa-chevron-right" style="font-size:0.7rem; opacity:0.5;"></i>`;
+                div.onclick = () => selectCategory(cat, div);
+                menu.appendChild(div);
+            });
+        }
+
+        function updateMode(m) {
+            activeMode = m;
+            document.querySelectorAll('.m-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`m-${m}`).classList.add('active');
+            if(currentCategory) startSession();
+        }
+
+        function selectCategory(cat, el) {
+            document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            currentCategory = cat;
+            startSession();
+        }
+
+        function normalize(str) {
+            return str.toLowerCase().replace(/\b(a|an|the)\b/g, "").replace(/[,\-\s\.\(\)\:\"\'\;\_]/g, "").trim();
+        }
+
+        function startSession() {
+            document.getElementById('global-stats').style.display = 'flex';
+            currentSet = JSON.parse(JSON.stringify(data[currentCategory]));
+            score = { correct: 0, wrong: 0 };
+            currentIndex = 0;
+
+            if (activeMode === 'chrono') {
+                renderGrid();
+            } else {
+                currentSet.sort(() => Math.random() - 0.5);
+                renderQuiz();
+            }
+        }
+
+        function renderGrid() {
+            const stage = document.getElementById('stage');
+            stage.innerHTML = `<div class="grid-container animate" id="grid"></div>`;
+            const grid = document.getElementById('grid');
+            currentSet.forEach((item, idx) => {
+                const bub = document.createElement('div');
+                bub.className = `bubble ${item.done ? 'completed' : ''}`;
+                bub.innerText = item.art;
+                bub.onclick = () => { if(!item.done) openModal(idx); };
+                grid.appendChild(bub);
+            });
+            updateStats();
+        }
+
+        function renderQuiz() {
+            const item = currentSet[currentIndex];
+            const stage = document.getElementById('stage');
+            stage.innerHTML = `
+                <div class="quiz-card animate">
+                    <div class="art-tag">${item.art}</div>
+                    <p style="text-align: center; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px;">Enter Article Subject</p>
+                    <input type="text" id="quiz-input" placeholder="Type here..." autocomplete="off">
+                    <div id="quiz-feedback" style="text-align: center; margin-top: 25px; font-weight: bold; height: 20px;"></div>
+                </div>
+            `;
+            const input = document.getElementById('quiz-input');
+            input.focus();
+            input.onkeypress = (e) => {
+                if(e.key === 'Enter') handleQuizSubmit(input.value);
+            };
+            updateStats();
+        }
+
+        function handleQuizSubmit(val) {
+            const correct = normalize(currentSet[currentIndex].sub);
+            const user = normalize(val);
+            const feedback = document.getElementById('quiz-feedback');
+
+            if(user === correct) {
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                score.correct++;
+                feedback.innerText = "EXCELLENT";
+                feedback.style.color = "var(--secondary)";
+                setTimeout(nextQuestion, 1000);
+            } else {
+                document.querySelector('.quiz-card').classList.add('shake');
+                score.wrong++;
+                feedback.innerText = "INCORRECT WORDING";
+                feedback.style.color = "var(--wrong)";
+                setTimeout(() => {
+                    document.querySelector('.quiz-card').classList.remove('shake');
+                    nextQuestion();
+                }, 1000);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if(currentIndex < currentSet.length) renderQuiz();
+            else showFinalResults();
+        }
+
+        function openModal(idx) {
+            selectedItem = currentSet[idx];
+            document.getElementById('modal-art-num').innerText = selectedItem.art;
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('modal-input').value = '';
+            document.getElementById('modal-feedback').innerText = '';
+            document.getElementById('modal-input').focus();
+        }
+
+        document.getElementById('modal-input').onkeypress = (e) => {
+            if(e.key === 'Enter') {
+                const user = normalize(e.target.value);
+                const correct = normalize(selectedItem.sub);
+                const feedback = document.getElementById('modal-feedback');
+
+                if(user === correct) {
+                    selectedItem.done = true;
+                    feedback.innerText = "CORRECT";
+                    feedback.style.color = "var(--secondary)";
+                    confetti({ particleCount: 50, spread: 50 });
+                    setTimeout(() => { closeModal(); renderGrid(); }, 800);
+                } else {
+                    document.querySelector('#modal .quiz-card').classList.add('shake');
+                    feedback.innerText = "TRY AGAIN";
+                    feedback.style.color = "var(--wrong)";
+                    setTimeout(() => document.querySelector('#modal .quiz-card').classList.remove('shake'), 400);
+                }
+            }
+        };
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        function updateStats() {
+            const total = currentSet.length;
+            const completed = activeMode === 'chrono' ? currentSet.filter(i => i.done).length : currentIndex;
+            document.getElementById('stat-progress').innerText = `${completed}/${total}`;
+            
+            const totalAttempts = score.correct + score.wrong;
+            const acc = totalAttempts === 0 ? 100 : Math.round((score.correct / totalAttempts) * 100);
+            document.getElementById('stat-accuracy').innerText = `${acc}%`;
+        }
+
+        function showFinalResults() {
+            document.getElementById('stage').innerHTML = `
+                <div class="welcome-hero animate">
+                    <i class="fas fa-trophy" style="font-size: 4rem; color: #fbbf24; margin-bottom: 20px;"></i>
+                    <h2>Session Complete</h2>
+                    <p>Accuracy: ${Math.round((score.correct / currentSet.length) * 100)}%</p>
+                    <button onclick="startSession()" style="margin-top:30px; padding: 12px 40px; background:var(--accent); border:none; color:white; border-radius:10px; cursor:pointer; font-weight:bold;">RESTART</button>
+                </div>
+            `;
+        }
+
+        initSidebar();
+    </script>
+</body>
+</html>
